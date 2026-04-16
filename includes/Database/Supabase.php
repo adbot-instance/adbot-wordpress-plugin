@@ -27,11 +27,10 @@ class Supabase {
 	public function upsert_account( array $data ): array {
 		$result = $this->request(
 			'POST',
-			'/rest/v1/Account',
+			'/rest/v1/Account?on_conflict=googleSub',
 			$data,
 			[
-				'Prefer'         => 'resolution=merge-duplicates,return=representation',
-				'On-Conflict'    => 'googleSub',
+				'Prefer' => 'resolution=merge-duplicates,return=representation',
 			]
 		);
 
@@ -51,11 +50,10 @@ class Supabase {
 	public function upsert_google_connection( array $data ): array {
 		$result = $this->request(
 			'POST',
-			'/rest/v1/GoogleConnection',
+			'/rest/v1/GoogleConnection?on_conflict=accountId',
 			$data,
 			[
-				'Prefer'      => 'resolution=merge-duplicates,return=representation',
-				'On-Conflict' => 'accountId',
+				'Prefer' => 'resolution=merge-duplicates,return=representation',
 			]
 		);
 
@@ -96,11 +94,10 @@ class Supabase {
 	public function upsert_google_property( array $data ): array {
 		$result = $this->request(
 			'POST',
-			'/rest/v1/GoogleProperty',
+			'/rest/v1/GoogleProperty?on_conflict=accountId,kind,externalId',
 			$data,
 			[
-				'Prefer'      => 'resolution=merge-duplicates,return=representation',
-				'On-Conflict' => 'accountId,kind,externalId',
+				'Prefer' => 'resolution=merge-duplicates,return=representation',
 			]
 		);
 
@@ -116,11 +113,10 @@ class Supabase {
 	public function upsert_wordpress_site( array $data ): array {
 		$result = $this->request(
 			'POST',
-			'/rest/v1/wordpress_sites',
+			'/rest/v1/wordpress_sites?on_conflict=site_url',
 			$data,
 			[
-				'Prefer'      => 'resolution=merge-duplicates,return=representation',
-				'On-Conflict' => 'site_url',
+				'Prefer' => 'resolution=merge-duplicates,return=representation',
 			]
 		);
 
@@ -142,11 +138,10 @@ class Supabase {
 	public function upsert_snippet_install( array $data ): array {
 		$result = $this->request(
 			'POST',
-			'/rest/v1/snippet_installs',
+			'/rest/v1/snippet_installs?on_conflict=wordpress_site_id',
 			$data,
 			[
-				'Prefer'      => 'resolution=merge-duplicates,return=representation',
-				'On-Conflict' => 'wordpress_site_id',
+				'Prefer' => 'resolution=merge-duplicates,return=representation',
 			]
 		);
 

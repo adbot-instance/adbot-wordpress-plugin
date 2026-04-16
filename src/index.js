@@ -1,4 +1,4 @@
-import { render } from '@wordpress/element';
+import { createRoot } from '@wordpress/element';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
@@ -8,10 +8,11 @@ import Setup from './pages/Setup';
 import Settings from './pages/Settings';
 import './index.scss';
 
-const root = document.getElementById( 'adbot-admin-root' );
+const container = document.getElementById( 'adbot-admin-root' );
 
-if ( root ) {
-	render(
+if ( container ) {
+	const root = createRoot( container );
+	root.render(
 		<HashRouter>
 			<Routes>
 				<Route path="/" element={ <Layout /> }>
@@ -23,7 +24,6 @@ if ( root ) {
 					<Route path="*" element={ <Navigate to="/" replace /> } />
 				</Route>
 			</Routes>
-		</HashRouter>,
-		root
+		</HashRouter>
 	);
 }

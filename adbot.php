@@ -24,6 +24,10 @@ define( 'ADBOT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADBOT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ADBOT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
+// Local env files (.env.local, .env) — skipped if vars already set (e.g. wp-config.php).
+require_once ADBOT_PLUGIN_DIR . 'includes/env-loader.php';
+adbot_load_env_files();
+
 // Autoloader.
 if ( file_exists( ADBOT_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
 	require_once ADBOT_PLUGIN_DIR . 'vendor/autoload.php';

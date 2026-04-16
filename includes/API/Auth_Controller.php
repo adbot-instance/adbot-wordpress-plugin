@@ -110,7 +110,7 @@ class Auth_Controller extends REST_Controller {
 			] );
 
 			// Create/update WordPressSite record.
-			$supabase->upsert_wordpress_site( [
+			$site = $supabase->upsert_wordpress_site( [
 				'site_url'   => get_site_url(),
 				'site_name'  => get_bloginfo( 'name' ),
 				'wp_version' => get_bloginfo( 'version' ),

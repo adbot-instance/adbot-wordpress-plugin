@@ -4,9 +4,13 @@ namespace Adbot\Tracking;
 
 class Snippet_Injector {
 
+	private bool $body_snippet_injected = false;
+
 	public function __construct() {
 		add_action( 'wp_head', [ $this, 'inject_head_snippet' ], 1 );
 		add_action( 'wp_body_open', [ $this, 'inject_body_snippet' ], 1 );
+		// Fallback for themes that don't call wp_body_open().
+		add_action( 'wp_footer', [ $this, 'inject_body_snippet_fallback' ], 1 );
 	}
 
 	public function inject_head_snippet(): void {
@@ -22,7 +26,7 @@ class Snippet_Injector {
 		$container_id = esc_js( $container_id );
 
 		echo "<!-- Google Tag Manager (Adbot) -->\n";
-		echo "<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n";
+		echo '<script id="adbot-gtm-loader" data-adbot="gtm">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':' . "\n";
 		echo "new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n";
 		echo "j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n";
 		echo "'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n";
@@ -43,9 +47,19 @@ class Snippet_Injector {
 		$container_id = esc_attr( $container_id );
 
 		echo "<!-- Google Tag Manager (noscript) (Adbot) -->\n";
-		echo '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=' . $container_id . '"' . "\n";
+		echo '<noscript data-adbot="gtm"><iframe id="adbot-gtm-noscript" src="https://www.googletagmanager.com/ns.html?id=' . $container_id . '"' . "\n";
 		echo 'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>' . "\n";
 		echo "<!-- End Google Tag Manager (noscript) (Adbot) -->\n";
+
+		$this->body_snippet_injected = true;
+	}
+
+	public function inject_body_snippet_fallback(): void {
+		if ( $this->body_snippet_injected ) {
+			return;
+		}
+
+		$this->inject_body_snippet();
 	}
 
 	private function get_active_container_id(): ?string {

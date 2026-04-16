@@ -13,7 +13,7 @@ abstract class REST_Controller extends WP_REST_Controller {
 		return current_user_can( 'manage_options' );
 	}
 
-	protected function permission_callback(): bool {
+	public function permission_callback(): bool {
 		return $this->check_admin_permission();
 	}
 
