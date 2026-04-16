@@ -1,0 +1,26 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build output
+/build/
+
+# Environment
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Composer
+composer.lock
+
+# npm
+package-lock.json

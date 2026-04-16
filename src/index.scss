@@ -1,0 +1,182 @@
+/* Adbot admin shell — complements wp-components */
+
+.adbot-admin {
+	max-width: 1200px;
+	margin: 0 0 24px;
+	font-size: 14px;
+	line-height: 1.5;
+	color: #1d2327;
+}
+
+.adbot-admin__header {
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.adbot-admin__header h1 {
+	margin: 0;
+	font-size: 23px;
+	font-weight: 400;
+}
+
+.adbot-admin__logo {
+	font-weight: 600;
+}
+
+.adbot-admin__body {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.adbot-admin__sidebar {
+	flex: 0 0 200px;
+}
+
+.adbot-admin__sidebar ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.adbot-admin__sidebar li {
+	margin: 0 0 4px;
+}
+
+.adbot-nav-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	text-decoration: none;
+	color: #1d2327;
+	border-radius: 4px;
+}
+
+.adbot-nav-item:hover {
+	background: #f0f0f1;
+	color: #1d2327;
+}
+
+.adbot-nav-item--active {
+	background: #f0f6fc;
+	color: #2271b1;
+	font-weight: 600;
+}
+
+.adbot-admin__content {
+	flex: 1;
+	min-width: 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px 24px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.adbot-dashboard__cards,
+.adbot-connect__section {
+	display: grid;
+	gap: 16px;
+}
+
+@media (min-width: 900px) {
+	.adbot-dashboard__cards {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.adbot-status-card {
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 14px 16px;
+	background: #fcfcfc;
+}
+
+.adbot-status-card__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 6px;
+}
+
+.adbot-status-card__header h3 {
+	margin: 0;
+	font-size: 14px;
+}
+
+.adbot-status-card__badge {
+	font-size: 12px;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: #f0f0f1;
+}
+
+.adbot-status-card__description {
+	margin: 0;
+	color: #50575e;
+	font-size: 13px;
+}
+
+.adbot-status--success .adbot-status-card__badge {
+	background: #edfaef;
+	color: #00a32a;
+}
+
+.adbot-status--warning .adbot-status-card__badge {
+	background: #fcf9e8;
+	color: #996800;
+}
+
+.adbot-status--error .adbot-status-card__badge {
+	background: #fcf0f1;
+	color: #d63638;
+}
+
+.adbot-dashboard__actions {
+	margin-top: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.adbot-connect__account {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.adbot-connect__avatar {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+}
+
+.adbot-audit__summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	align-items: flex-start;
+	margin-bottom: 24px;
+}
+
+.adbot-audit__meta p {
+	margin: 4px 0;
+}
+
+.adbot-error {
+	color: #d63638;
+}
+
+.adbot-success {
+	color: #00a32a;
+}
+
+.adbot-saved {
+	margin-left: 10px;
+	color: #00a32a;
+}
