@@ -20,8 +20,9 @@ class Status_Controller extends REST_Controller {
 		$account_id   = get_option( 'adbot_account_id' );
 		$is_connected = ! empty( $account_id );
 
-		$snippet_active       = (bool) get_option( 'adbot_snippet_active' );
-		$snippet_container_id = get_option( 'adbot_snippet_container_id', '' );
+		$snippet_active         = (bool) get_option( 'adbot_snippet_active' );
+		$snippet_container_id   = get_option( 'adbot_snippet_container_id', '' );
+		$snippet_container_path = get_option( 'adbot_snippet_container_path', '' );
 
 		$account = null;
 		if ( $is_connected ) {
@@ -41,8 +42,9 @@ class Status_Controller extends REST_Controller {
 				'name'    => $account['name'] ?? null,
 				'picture' => $account['picture'] ?? null,
 			] : null,
-			'snippetActive'      => $snippet_active,
-			'snippetContainerId' => $snippet_container_id,
+			'snippetActive'        => $snippet_active,
+			'snippetContainerId'   => $snippet_container_id,
+			'snippetContainerPath' => $snippet_container_path,
 			'siteUrl'            => get_site_url(),
 			'wpVersion'          => get_bloginfo( 'version' ),
 			'pluginVersion'      => ADBOT_VERSION,

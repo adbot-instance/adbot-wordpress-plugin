@@ -22,11 +22,13 @@ class TagManager {
 	 */
 	public function list_accounts_and_containers(): array {
 		$result   = [];
-		$accounts = $this->service->accounts->listAccounts();
+		$accounts = Retry::run( fn() => $this->service->accounts->listAccounts() );
 
 		foreach ( $accounts->getAccount() ?? [] as $account ) {
 			$account_path = $account->getPath();
-			$containers   = $this->service->accounts_containers->listAccountsContainers( $account_path );
+			$containers   = Retry::run(
+				fn() => $this->service->accounts_containers->listAccountsContainers( $account_path )
+			);
 
 			$container_list = [];
 			foreach ( $containers->getContainer() ?? [] as $container ) {

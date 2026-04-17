@@ -1,6 +1,7 @@
 import { useState, useEffect } from '@wordpress/element';
 import { useNavigate } from 'react-router-dom';
 import StatusCard from '../components/StatusCard';
+import OnboardingChecklist from '../components/OnboardingChecklist';
 import { getStatus } from '../api/settings';
 
 function readLastAudit() {
@@ -49,6 +50,8 @@ export default function Dashboard() {
 		<div className="adbot-dashboard">
 			<h2>Dashboard</h2>
 			<p>Overview of your Adbot tracking setup.</p>
+
+			<OnboardingChecklist />
 
 			<div className="adbot-dashboard__cards">
 				<StatusCard

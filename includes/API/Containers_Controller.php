@@ -24,14 +24,33 @@ class Containers_Controller extends REST_Controller {
 			return $this->error_response( 'Not connected to Google.', 401 );
 		}
 
+		$cache_key = 'adbot_containers_' . md5( $account_id );
+		$force     = (bool) $request->get_param( 'refresh' );
+
+		if ( ! $force ) {
+			$cached = get_transient( $cache_key );
+			if ( is_array( $cached ) ) {
+				return new WP_REST_Response( $cached, 200 );
+			}
+		}
+
 		try {
 			$google_client = Client::get_authenticated_client( $account_id );
 			$tagmanager    = new TagManager( $google_client );
 			$containers    = $tagmanager->list_accounts_and_containers();
 
+			set_transient( $cache_key, $containers, 5 * MINUTE_IN_SECONDS );
+
 			return new WP_REST_Response( $containers, 200 );
 		} catch ( \Exception $e ) {
-			return $this->error_response( 'Failed to list containers: ' . $e->getMessage(), 500 );
+			$msg = $e->getMessage();
+			if ( stripos( $msg, 'rateLimitExceeded' ) !== false || stripos( $msg, 'quota' ) !== false ) {
+				return $this->error_response(
+					'Google Tag Manager rate limit reached. Wait ~60 seconds and try again.',
+					429
+				);
+			}
+			return $this->error_response( 'Failed to list containers: ' . $msg, 500 );
 		}
 	}
 }

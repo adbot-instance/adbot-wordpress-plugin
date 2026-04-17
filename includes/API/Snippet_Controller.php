@@ -53,6 +53,9 @@ class Snippet_Controller extends REST_Controller {
 		// Store in wp_options for fast front-end access.
 		update_option( 'adbot_snippet_container_id', $container_id );
 		update_option( 'adbot_snippet_active', true );
+		if ( $container_path ) {
+			update_option( 'adbot_snippet_container_path', $container_path );
+		}
 
 		// Also track in Supabase.
 		$site_id = get_option( 'adbot_site_id' );
@@ -80,6 +83,7 @@ class Snippet_Controller extends REST_Controller {
 	public function uninstall_snippet( WP_REST_Request $request ): WP_REST_Response {
 		delete_option( 'adbot_snippet_active' );
 		delete_option( 'adbot_snippet_container_id' );
+		delete_option( 'adbot_snippet_container_path' );
 
 		$site_id = get_option( 'adbot_site_id' );
 		if ( $site_id ) {

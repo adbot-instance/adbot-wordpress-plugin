@@ -153,6 +153,10 @@ class Auth_Controller extends REST_Controller {
 		delete_option( 'adbot_site_id' );
 		delete_option( 'adbot_snippet_active' );
 		delete_option( 'adbot_snippet_container_id' );
+		delete_option( 'adbot_snippet_container_path' );
+
+		// Reset onboarding so the wizard restarts cleanly.
+		delete_option( 'adbot_onboarding' );
 
 		return new WP_REST_Response( [ 'disconnected' => true ], 200 );
 	}

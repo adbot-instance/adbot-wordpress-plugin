@@ -18,6 +18,15 @@ abstract class REST_Controller extends WP_REST_Controller {
 	}
 
 	protected function error_response( string $message, int $status = 400 ): \WP_REST_Response {
-		return new \WP_REST_Response( [ 'error' => $message ], $status );
+		// Return in WP_Error format so @wordpress/api-fetch surfaces `message` on the thrown error.
+		return new \WP_REST_Response(
+			[
+				'code'    => 'adbot_error',
+				'message' => $message,
+				'error'   => $message,
+				'data'    => [ 'status' => $status ],
+			],
+			$status
+		);
 	}
 }
