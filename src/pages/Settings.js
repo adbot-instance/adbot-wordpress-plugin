@@ -1,4 +1,6 @@
 import { useState, useEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
+import { Notice } from '@wordpress/components';
 import { getSettings, updateSettings } from '../api/settings';
 
 export default function Settings() {
@@ -6,6 +8,7 @@ export default function Settings() {
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ saved, setSaved ] = useState( false );
+	const [ error, setError ] = useState( '' );
 
 	useEffect( () => {
 		getSettings()
@@ -19,29 +22,46 @@ export default function Settings() {
 	const handleSave = async () => {
 		setSaving( true );
 		setSaved( false );
+		setError( '' );
 		try {
 			const updated = await updateSettings( settings );
 			setSettings( updated );
 			setSaved( true );
 			setTimeout( () => setSaved( false ), 3000 );
 		} catch ( err ) {
-			alert( 'Failed to save: ' + ( err.message || err ) );
+			setError( err?.message ? String( err.message ) : String( err ) );
 		}
 		setSaving( false );
 	};
 
 	if ( loading ) {
-		return <p>Loading settings...</p>;
+		return <p>{ __( 'Loading settings…', 'adbot' ) }</p>;
 	}
 
 	return (
 		<div className="adbot-settings">
-			<h2>Settings</h2>
+			<h2>{ __( 'Settings', 'adbot' ) }</h2>
+
+			{ error && (
+				<Notice status="error" isDismissible onRemove={ () => setError( '' ) }>
+					{ __( 'Failed to save:', 'adbot' ) } { error }
+				</Notice>
+			) }
+
+			<Notice status="info" isDismissible={ false }>
+				<strong>{ __( 'External services', 'adbot' ) }</strong>
+				<p>
+					{ __(
+						'This plugin communicates only with the Adbot backend service at api.adbot.co.za. The Adbot backend relays authorized requests on your behalf to Google (OAuth, Tag Manager, Analytics, Ads, Search Console), Supabase (token storage), and Paystack (payments). Your WordPress site never talks to these providers directly, and no external request is made until the Consent toggle below is enabled AND you start a connection.',
+						'adbot'
+					) }
+				</p>
+			</Notice>
 
 			<table className="form-table">
 				<tbody>
 					<tr>
-						<th scope="row">Exclude Admins</th>
+						<th scope="row">{ __( 'Exclude admins', 'adbot' ) }</th>
 						<td>
 							<label>
 								<input
@@ -51,15 +71,15 @@ export default function Settings() {
 										setSettings( { ...settings, exclude_admins: e.target.checked } )
 									}
 								/>
-								Don't inject GTM snippet for logged-in administrators
+								{ __( "Don't inject the GTM snippet for logged-in administrators", 'adbot' ) }
 							</label>
 							<p className="description">
-								Useful to avoid skewing analytics data during development.
+								{ __( 'Useful to avoid skewing analytics data during development.', 'adbot' ) }
 							</p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row">Debug Mode</th>
+						<th scope="row">{ __( 'Debug mode', 'adbot' ) }</th>
 						<td>
 							<label>
 								<input
@@ -69,8 +89,26 @@ export default function Settings() {
 										setSettings( { ...settings, debug_mode: e.target.checked } )
 									}
 								/>
-								Enable debug logging in the browser console
+								{ __( 'Enable debug logging in the browser console', 'adbot' ) }
 							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row">{ __( 'Consent', 'adbot' ) }</th>
+						<td>
+							<label>
+								<input
+									type="checkbox"
+									checked={ settings?.consent_given ?? false }
+									onChange={ ( e ) =>
+										setSettings( { ...settings, consent_given: e.target.checked } )
+									}
+								/>
+								{ __( 'Allow Adbot to contact external services when you use connected features', 'adbot' ) }
+							</label>
+							<p className="description">
+								{ __( 'You can revoke this at any time; connected features will stop working until re-enabled.', 'adbot' ) }
+							</p>
 						</td>
 					</tr>
 				</tbody>
@@ -82,9 +120,9 @@ export default function Settings() {
 					onClick={ handleSave }
 					disabled={ saving }
 				>
-					{ saving ? 'Saving...' : 'Save Settings' }
+					{ saving ? __( 'Saving…', 'adbot' ) : __( 'Save settings', 'adbot' ) }
 				</button>
-				{ saved && <span className="adbot-saved"> Settings saved.</span> }
+				{ saved && <span className="adbot-saved"> { __( 'Settings saved.', 'adbot' ) }</span> }
 			</p>
 		</div>
 	);

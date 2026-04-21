@@ -2,6 +2,7 @@
 
 namespace Adbot\API;
 
+use Adbot\Consent;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -20,10 +21,16 @@ class Settings_Controller extends REST_Controller {
 				'permission_callback' => [ $this, 'permission_callback' ],
 				'args'                => [
 					'exclude_admins' => [
-						'type' => 'boolean',
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
 					],
 					'debug_mode' => [
-						'type' => 'boolean',
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
+					'consent_given' => [
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
 					],
 				],
 			],
@@ -35,6 +42,8 @@ class Settings_Controller extends REST_Controller {
 			'exclude_admins' => true,
 			'debug_mode'     => false,
 		] );
+
+		$settings['consent_given'] = Consent::has_consent();
 
 		return new WP_REST_Response( $settings, 200 );
 	}
@@ -50,7 +59,13 @@ class Settings_Controller extends REST_Controller {
 			$current['debug_mode'] = (bool) $request->get_param( 'debug_mode' );
 		}
 
+		if ( $request->has_param( 'consent_given' ) ) {
+			update_option( Consent::OPTION, (bool) $request->get_param( 'consent_given' ) );
+		}
+
 		update_option( 'adbot_settings', $current );
+
+		$current['consent_given'] = Consent::has_consent();
 
 		return new WP_REST_Response( $current, 200 );
 	}

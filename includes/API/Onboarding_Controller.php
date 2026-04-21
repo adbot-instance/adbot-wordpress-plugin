@@ -31,6 +31,45 @@ class Onboarding_Controller extends REST_Controller {
 				'methods'             => 'POST',
 				'callback'            => [ $this, 'update_state' ],
 				'permission_callback' => [ $this, 'permission_callback' ],
+				'args'                => [
+					'step' => [
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+						'validate_callback' => function ( $value ) {
+							return is_string( $value ) && in_array( $value, self::STEPS, true );
+						},
+					],
+					'markCompleted' => [
+						'sanitize_callback' => function ( $value ) {
+							if ( is_array( $value ) ) {
+								return array_values( array_filter( array_map( 'sanitize_text_field', $value ) ) );
+							}
+							if ( is_string( $value ) ) {
+								return sanitize_text_field( $value );
+							}
+							return $value;
+						},
+						'validate_callback' => function ( $value ) {
+							if ( is_array( $value ) ) {
+								foreach ( $value as $v ) {
+									if ( ! is_string( $v ) || ! in_array( $v, self::STEPS, true ) ) {
+										return false;
+									}
+								}
+								return true;
+							}
+							return is_string( $value ) && in_array( $value, self::STEPS, true );
+						},
+					],
+					'auditId' => [
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+					'skipped' => [
+						'type'              => 'boolean',
+						'sanitize_callback' => 'rest_sanitize_boolean',
+					],
+				],
 			],
 		] );
 

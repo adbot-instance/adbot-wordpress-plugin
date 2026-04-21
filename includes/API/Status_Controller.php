@@ -4,7 +4,9 @@ namespace Adbot\API;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use Adbot\Database\Supabase;
+use Adbot\Backend\Client;
+use Adbot\Backend\Backend_Exception;
+use Adbot\Backend\Token_Store;
 
 class Status_Controller extends REST_Controller {
 
@@ -17,37 +19,32 @@ class Status_Controller extends REST_Controller {
 	}
 
 	public function get_status( WP_REST_Request $request ): WP_REST_Response {
-		$account_id   = get_option( 'adbot_account_id' );
-		$is_connected = ! empty( $account_id );
-
 		$snippet_active         = (bool) get_option( 'adbot_snippet_active' );
-		$snippet_container_id   = get_option( 'adbot_snippet_container_id', '' );
-		$snippet_container_path = get_option( 'adbot_snippet_container_path', '' );
+		$snippet_container_id   = (string) get_option( 'adbot_snippet_container_id', '' );
+		$snippet_container_path = (string) get_option( 'adbot_snippet_container_path', '' );
 
-		$account = null;
-		if ( $is_connected ) {
+		$connected = false;
+		$account   = null;
+
+		if ( '' !== Token_Store::get_site_token() ) {
 			try {
-				$supabase = new Supabase();
-				$account  = $supabase->get_account( $account_id );
-			} catch ( \Exception $e ) {
-				// Silently continue — account data is non-critical for status.
+				$result    = ( new Client() )->get( '/auth/status' );
+				$connected = (bool) ( $result['connected'] ?? false );
+				$account   = $result['account'] ?? null;
+			} catch ( Backend_Exception $e ) {
+				$this->log_exception( 'status', $e );
 			}
 		}
 
 		return new WP_REST_Response( [
-			'connected'          => $is_connected,
-			'account'            => $account ? [
-				'id'      => $account['id'],
-				'email'   => $account['email'],
-				'name'    => $account['name'] ?? null,
-				'picture' => $account['picture'] ?? null,
-			] : null,
+			'connected'            => $connected,
+			'account'              => $account,
 			'snippetActive'        => $snippet_active,
 			'snippetContainerId'   => $snippet_container_id,
 			'snippetContainerPath' => $snippet_container_path,
-			'siteUrl'            => get_site_url(),
-			'wpVersion'          => get_bloginfo( 'version' ),
-			'pluginVersion'      => ADBOT_VERSION,
+			'siteUrl'              => get_site_url(),
+			'wpVersion'            => get_bloginfo( 'version' ),
+			'pluginVersion'        => ADBOT_VERSION,
 		], 200 );
 	}
 }

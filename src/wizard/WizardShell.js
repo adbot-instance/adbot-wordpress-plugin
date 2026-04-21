@@ -1,4 +1,6 @@
 import { useOnboarding } from './OnboardingProvider';
+import { __ } from '@wordpress/i18n';
+import { useEffect, useRef } from '@wordpress/element';
 import StepWelcome from './steps/StepWelcome';
 import StepConnect from './steps/StepConnect';
 import StepProperty from './steps/StepProperty';
@@ -8,13 +10,13 @@ import StepPay from './steps/StepPay';
 import StepApply from './steps/StepApply';
 
 const STEP_LABELS = [
-	[ 'welcome', 'Welcome' ],
-	[ 'connect', 'Connect Google' ],
-	[ 'property', 'Find property' ],
-	[ 'audit', 'Audit tracking' ],
-	[ 'report', 'Review report' ],
-	[ 'pay', 'Unlock fixes' ],
-	[ 'apply', 'Apply fixes' ],
+	[ 'welcome', __( 'Welcome', 'adbot' ) ],
+	[ 'connect', __( 'Connect Google', 'adbot' ) ],
+	[ 'property', __( 'Find property', 'adbot' ) ],
+	[ 'audit', __( 'Audit tracking', 'adbot' ) ],
+	[ 'report', __( 'Review report', 'adbot' ) ],
+	[ 'pay', __( 'Unlock fixes', 'adbot' ) ],
+	[ 'apply', __( 'Apply fixes', 'adbot' ) ],
 ];
 
 const COMPONENTS = {
@@ -29,6 +31,23 @@ const COMPONENTS = {
 
 export default function WizardShell() {
 	const { state, loading, skipped, skip, back, canGoBack } = useOnboarding();
+	const frameRef = useRef( null );
+	const step = state?.step;
+
+	useEffect( () => {
+		if ( loading || ! state || step === 'done' || skipped ) {
+			return;
+		}
+
+		if ( frameRef.current ) {
+			const focusable = frameRef.current.querySelector(
+				'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+			);
+			if ( focusable ) {
+				focusable.focus();
+			}
+		}
+	}, [ loading, skipped, state, step ] );
 
 	if ( loading || ! state ) {
 		return null;
@@ -40,15 +59,22 @@ export default function WizardShell() {
 
 	const StepComponent = COMPONENTS[ state.step ] || StepWelcome;
 	const currentIdx = STEP_LABELS.findIndex( ( [ k ] ) => k === state.step );
+	const titleId = 'adbot-wizard-title';
 
 	return (
 		<div className="adbot-wizard">
 			<div className="adbot-wizard__backdrop" />
-			<div className="adbot-wizard__frame">
+			<div
+				className="adbot-wizard__frame"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby={ titleId }
+				ref={ frameRef }
+			>
 				<aside className="adbot-wizard__rail">
 					<div className="adbot-wizard__brand">
 						<span className="adbot-wizard__brand-dot" />
-						<span>Adbot</span>
+						<span id={ titleId }>{ __( 'Adbot setup', 'adbot' ) }</span>
 					</div>
 					<ol className="adbot-wizard__steps">
 						{ STEP_LABELS.map( ( [ key, label ], i ) => {
@@ -62,9 +88,12 @@ export default function WizardShell() {
 										( isActive ? ' is-active' : '' ) +
 										( isDone ? ' is-done' : '' )
 									}
+									aria-current={ isActive ? 'step' : undefined }
 								>
 									<span className="adbot-wizard__step-bullet">
-										{ isDone && ! isActive ? '✓' : i + 1 }
+										<span aria-hidden="true">
+											{ isDone && ! isActive ? '✓' : i + 1 }
+										</span>
 									</span>
 									<span>{ label }</span>
 								</li>
@@ -76,7 +105,7 @@ export default function WizardShell() {
 						className="adbot-wizard__skip"
 						onClick={ skip }
 					>
-						Skip to dashboard
+						{ __( 'Skip to dashboard', 'adbot' ) }
 					</button>
 				</aside>
 
@@ -88,7 +117,7 @@ export default function WizardShell() {
 								className="adbot-wizard__back"
 								onClick={ back }
 							>
-								← Back
+								<span aria-hidden="true">←</span> { __( 'Back', 'adbot' ) }
 							</button>
 						) : (
 							<span />

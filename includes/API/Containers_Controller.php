@@ -4,8 +4,9 @@ namespace Adbot\API;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use Adbot\Google\Client;
-use Adbot\Google\TagManager;
+use Adbot\Backend\Client;
+use Adbot\Backend\Backend_Exception;
+use Adbot\Consent_Required_Exception;
 
 class Containers_Controller extends REST_Controller {
 
@@ -14,17 +15,17 @@ class Containers_Controller extends REST_Controller {
 			'methods'             => 'GET',
 			'callback'            => [ $this, 'list_containers' ],
 			'permission_callback' => [ $this, 'permission_callback' ],
+			'args'                => [
+				'refresh' => [
+					'type'              => 'boolean',
+					'sanitize_callback' => 'rest_sanitize_boolean',
+				],
+			],
 		] );
 	}
 
 	public function list_containers( WP_REST_Request $request ): WP_REST_Response {
-		$account_id = get_option( 'adbot_account_id' );
-
-		if ( ! $account_id ) {
-			return $this->error_response( 'Not connected to Google.', 401 );
-		}
-
-		$cache_key = 'adbot_containers_' . md5( $account_id );
+		$cache_key = 'adbot_containers';
 		$force     = (bool) $request->get_param( 'refresh' );
 
 		if ( ! $force ) {
@@ -35,22 +36,14 @@ class Containers_Controller extends REST_Controller {
 		}
 
 		try {
-			$google_client = Client::get_authenticated_client( $account_id );
-			$tagmanager    = new TagManager( $google_client );
-			$containers    = $tagmanager->list_accounts_and_containers();
-
-			set_transient( $cache_key, $containers, 5 * MINUTE_IN_SECONDS );
-
-			return new WP_REST_Response( $containers, 200 );
-		} catch ( \Exception $e ) {
-			$msg = $e->getMessage();
-			if ( stripos( $msg, 'rateLimitExceeded' ) !== false || stripos( $msg, 'quota' ) !== false ) {
-				return $this->error_response(
-					'Google Tag Manager rate limit reached. Wait ~60 seconds and try again.',
-					429
-				);
-			}
-			return $this->error_response( 'Failed to list containers: ' . $msg, 500 );
+			$result = ( new Client() )->get( '/gtm/containers' );
+			set_transient( $cache_key, $result, 5 * MINUTE_IN_SECONDS );
+			return new WP_REST_Response( $result, 200 );
+		} catch ( Consent_Required_Exception $e ) {
+			return $this->error_response( $e->getMessage(), 403 );
+		} catch ( Backend_Exception $e ) {
+			$this->log_exception( 'containers_list', $e );
+			return $this->backend_error( $e );
 		}
 	}
 }

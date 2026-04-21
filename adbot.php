@@ -24,9 +24,14 @@ define( 'ADBOT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADBOT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'ADBOT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
-// Local env files (.env.local, .env) — skipped if vars already set (e.g. wp-config.php).
-require_once ADBOT_PLUGIN_DIR . 'includes/env-loader.php';
-adbot_load_env_files();
+/**
+ * Adbot requires no secrets or user configuration. All Google / Supabase /
+ * Paystack traffic is proxied through the Adbot backend on Vercel.
+ *
+ * Optional overrides (development only):
+ *   define( 'ADBOT_API_BASE', 'https://staging.api.adbot.co.za/wp/v1' );
+ *   define( 'ADBOT_DEBUG', true );
+ */
 
 // Autoloader.
 if ( file_exists( ADBOT_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
@@ -39,5 +44,6 @@ register_deactivation_hook( __FILE__, [ 'Adbot\\Deactivator', 'deactivate' ] );
 
 // Boot.
 add_action( 'plugins_loaded', function () {
+	load_plugin_textdomain( 'adbot', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	Adbot\Adbot::instance();
 } );

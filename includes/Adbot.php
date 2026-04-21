@@ -13,6 +13,7 @@ use Adbot\API\Settings_Controller;
 use Adbot\API\Onboarding_Controller;
 use Adbot\API\Payments_Controller;
 use Adbot\Tracking\Snippet_Injector;
+use Adbot\Backend\Site_Registration;
 
 class Adbot {
 
@@ -29,8 +30,13 @@ class Adbot {
 		$this->load_admin();
 		$this->load_rest_api();
 		$this->load_tracking();
+		$this->load_site_registration();
 
 		do_action( 'adbot_loaded' );
+	}
+
+	private function load_site_registration(): void {
+		( new Site_Registration() )->hook();
 	}
 
 	private function load_admin(): void {
@@ -50,6 +56,19 @@ class Adbot {
 			( new Settings_Controller() )->register_routes();
 			( new Onboarding_Controller() )->register_routes();
 			( new Payments_Controller() )->register_routes();
+
+			register_rest_route( 'adbot/v1', '/verify', [
+				'methods'             => 'GET',
+				'callback'            => [ Site_Registration::class, 'handle_verify_request' ],
+				'permission_callback' => '__return_true',
+				'args'                => [
+					'challenge' => [
+						'required'          => true,
+						'type'              => 'string',
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			] );
 		} );
 	}
 

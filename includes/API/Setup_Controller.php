@@ -4,12 +4,14 @@ namespace Adbot\API;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use Adbot\Google\Client;
-use Adbot\Google\TagManager;
-use Adbot\Setup\Plan;
-use Adbot\Setup\Executor;
-use Adbot\Setup\Publish;
+use Adbot\Backend\Client;
+use Adbot\Backend\Backend_Exception;
+use Adbot\Consent_Required_Exception;
 
+/**
+ * Thin proxy for setup-plan generation, execution, and container publishing.
+ * All Tag Manager API calls happen on the Adbot backend.
+ */
 class Setup_Controller extends REST_Controller {
 
 	public function register_routes(): void {
@@ -72,61 +74,36 @@ class Setup_Controller extends REST_Controller {
 	}
 
 	public function generate_plan( WP_REST_Request $request ): WP_REST_Response {
-		$gaps           = $request->get_param( 'gaps' );
-		$measurement_id = $request->get_param( 'measurementId' );
-
-		try {
-			$plan       = new Plan();
-			$operations = $plan->generate( $gaps, $measurement_id );
-
-			return new WP_REST_Response( [ 'operations' => $operations ], 200 );
-		} catch ( \Exception $e ) {
-			return $this->error_response( 'Plan generation failed: ' . $e->getMessage(), 500 );
-		}
+		return $this->proxy( 'setup_plan', '/setup/plan', [
+			'gaps'           => $request->get_param( 'gaps' ),
+			'measurement_id' => (string) $request->get_param( 'measurementId' ),
+		] );
 	}
 
 	public function execute_plan( WP_REST_Request $request ): WP_REST_Response {
-		$account_id     = get_option( 'adbot_account_id' );
-		$container_path = $request->get_param( 'containerPath' );
-		$workspace_path = $request->get_param( 'workspacePath' );
-		$operations     = $request->get_param( 'plan' );
-
-		if ( ! $account_id ) {
-			return $this->error_response( 'Not connected to Google.', 401 );
-		}
-
-		try {
-			$google_client = Client::get_authenticated_client( $account_id );
-			$tagmanager    = new TagManager( $google_client );
-			$executor      = new Executor( $tagmanager );
-
-			$results = $executor->execute( $workspace_path, $operations );
-
-			return new WP_REST_Response( [ 'results' => $results ], 200 );
-		} catch ( \Exception $e ) {
-			return $this->error_response( 'Execution failed: ' . $e->getMessage(), 500 );
-		}
+		return $this->proxy( 'setup_execute', '/setup/execute', [
+			'container_path' => (string) $request->get_param( 'containerPath' ),
+			'workspace_path' => (string) $request->get_param( 'workspacePath' ),
+			'plan'           => $request->get_param( 'plan' ),
+		] );
 	}
 
 	public function publish( WP_REST_Request $request ): WP_REST_Response {
-		$account_id     = get_option( 'adbot_account_id' );
-		$container_path = $request->get_param( 'containerPath' );
-		$workspace_path = $request->get_param( 'workspacePath' );
+		return $this->proxy( 'setup_publish', '/setup/publish', [
+			'container_path' => (string) $request->get_param( 'containerPath' ),
+			'workspace_path' => (string) $request->get_param( 'workspacePath' ),
+		] );
+	}
 
-		if ( ! $account_id ) {
-			return $this->error_response( 'Not connected to Google.', 401 );
-		}
-
+	private function proxy( string $log_ctx, string $path, array $body ): WP_REST_Response {
 		try {
-			$google_client = Client::get_authenticated_client( $account_id );
-			$tagmanager    = new TagManager( $google_client );
-			$publisher     = new Publish( $tagmanager );
-
-			$version = $publisher->publish( $container_path, $workspace_path );
-
-			return new WP_REST_Response( [ 'version' => $version ], 200 );
-		} catch ( \Exception $e ) {
-			return $this->error_response( 'Publish failed: ' . $e->getMessage(), 500 );
+			$result = ( new Client() )->post( $path, $body );
+			return new WP_REST_Response( $result, 200 );
+		} catch ( Consent_Required_Exception $e ) {
+			return $this->error_response( $e->getMessage(), 403 );
+		} catch ( Backend_Exception $e ) {
+			$this->log_exception( $log_ctx, $e );
+			return $this->backend_error( $e );
 		}
 	}
 }

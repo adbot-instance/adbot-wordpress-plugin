@@ -60,6 +60,8 @@ class Admin {
 			true
 		);
 
+		wp_set_script_translations( 'adbot-admin', 'adbot', ADBOT_PLUGIN_DIR . 'languages' );
+
 		wp_enqueue_style(
 			'adbot-admin',
 			ADBOT_PLUGIN_URL . 'build/index.css',
@@ -67,18 +69,23 @@ class Admin {
 			$asset['version']
 		);
 
+		$images_url = ADBOT_PLUGIN_URL . 'assets/images/';
+
 		wp_localize_script( 'adbot-admin', 'adbotAdmin', [
-			'restUrl'          => esc_url_raw( rest_url( 'adbot/v1/' ) ),
-			'restRoot'         => trailingslashit( esc_url_raw( rest_url() ) ),
-			'nonce'            => wp_create_nonce( 'wp_rest' ),
-			'pluginUrl'        => ADBOT_PLUGIN_URL,
-			'version'          => ADBOT_VERSION,
-			'siteUrl'          => get_site_url(),
-			'siteName'         => get_bloginfo( 'name' ),
-			'paystackPublicKey' => \Adbot\Payments\Paystack::public_key(),
-			'fixPrice'         => \Adbot\Payments\Paystack::fix_price_major(),
-			'fixPriceSubunits' => \Adbot\Payments\Paystack::fix_price_subunits(),
-			'currency'         => \Adbot\Payments\Paystack::currency(),
+			'restUrl'   => esc_url_raw( rest_url( 'adbot/v1/' ) ),
+			'restRoot'  => trailingslashit( esc_url_raw( rest_url() ) ),
+			'nonce'     => wp_create_nonce( 'wp_rest' ),
+			'pluginUrl' => ADBOT_PLUGIN_URL,
+			'version'   => ADBOT_VERSION,
+			'siteUrl'   => get_site_url(),
+			'siteName'  => get_bloginfo( 'name' ),
+			'images'    => [
+				'adbot' => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),
+				'gtm'   => esc_url_raw( $images_url . 'google-products/google-tag-manager.svg' ),
+				'ga4'   => esc_url_raw( $images_url . 'google-products/ga4-logo.svg' ),
+				'gads'  => esc_url_raw( $images_url . 'google-products/gads-logo.svg' ),
+				'gsc'   => esc_url_raw( $images_url . 'google-products/gsc-logo.svg' ),
+			],
 		] );
 	}
 }

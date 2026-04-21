@@ -4,7 +4,9 @@ namespace Adbot\API;
 
 use WP_REST_Request;
 use WP_REST_Response;
-use Adbot\Database\Supabase;
+use Adbot\Backend\Client;
+use Adbot\Backend\Backend_Exception;
+use Adbot\Consent_Required_Exception;
 
 class Snippet_Controller extends REST_Controller {
 
@@ -46,32 +48,27 @@ class Snippet_Controller extends REST_Controller {
 	}
 
 	public function install_snippet( WP_REST_Request $request ): WP_REST_Response {
-		$container_id      = $request->get_param( 'containerId' );
-		$container_path    = $request->get_param( 'containerPath' );
-		$ga4_measurement   = $request->get_param( 'ga4MeasurementId' );
+		$container_id    = (string) $request->get_param( 'containerId' );
+		$container_path  = (string) $request->get_param( 'containerPath' );
+		$ga4_measurement = (string) $request->get_param( 'ga4MeasurementId' );
 
-		// Store in wp_options for fast front-end access.
+		// Local state: used by Snippet_Injector on every front-end page.
 		update_option( 'adbot_snippet_container_id', $container_id );
 		update_option( 'adbot_snippet_active', true );
-		if ( $container_path ) {
+		if ( '' !== $container_path ) {
 			update_option( 'adbot_snippet_container_path', $container_path );
 		}
 
-		// Also track in Supabase.
-		$site_id = get_option( 'adbot_site_id' );
-		if ( $site_id ) {
-			try {
-				$supabase = new Supabase();
-				$supabase->upsert_snippet_install( [
-					'wordpress_site_id'  => $site_id,
-					'gtm_container_id'   => $container_id,
-					'container_path'     => $container_path ?? '',
-					'ga4_measurement_id' => $ga4_measurement ?? '',
-					'is_active'          => true,
-				] );
-			} catch ( \Exception $e ) {
-				// Non-critical — local options are sufficient for snippet injection.
-			}
+		// Tell the backend so it can record the install. Failure is non-critical.
+		try {
+			( new Client() )->post( '/gtm/snippet/install', [
+				'container_id'       => $container_id,
+				'container_path'     => $container_path,
+				'ga4_measurement_id' => $ga4_measurement,
+				'site_url'           => get_site_url(),
+			] );
+		} catch ( Consent_Required_Exception | Backend_Exception $e ) {
+			$this->log_exception( 'snippet_install_record', $e );
 		}
 
 		return new WP_REST_Response( [
@@ -85,14 +82,10 @@ class Snippet_Controller extends REST_Controller {
 		delete_option( 'adbot_snippet_container_id' );
 		delete_option( 'adbot_snippet_container_path' );
 
-		$site_id = get_option( 'adbot_site_id' );
-		if ( $site_id ) {
-			try {
-				$supabase = new Supabase();
-				$supabase->delete_snippet_install( $site_id );
-			} catch ( \Exception $e ) {
-				// Non-critical.
-			}
+		try {
+			( new Client() )->post( '/gtm/snippet/uninstall' );
+		} catch ( Consent_Required_Exception | Backend_Exception $e ) {
+			$this->log_exception( 'snippet_uninstall_record', $e );
 		}
 
 		return new WP_REST_Response( [ 'uninstalled' => true ], 200 );
