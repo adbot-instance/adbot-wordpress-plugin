@@ -13,7 +13,7 @@ use Adbot\Consent_Required_Exception;
  * services directly.
  */
 class Client {
-	public const DEFAULT_BASE = 'https://api.adbot.co.za/wp/v1';
+	public const DEFAULT_BASE = 'https://adbot-tracking-platform.vercel.app/api/wp';
 
 	public static function base_url(): string {
 		$override = defined( 'ADBOT_API_BASE' ) ? (string) ADBOT_API_BASE : '';
