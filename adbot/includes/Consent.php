@@ -2,6 +2,10 @@
 
 namespace Adbot;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Centralized opt-in gate for outbound requests to external services.
  *
@@ -28,8 +32,8 @@ class Consent {
 		throw new Consent_Required_Exception(
 			sprintf(
 				/* translators: %s: third-party service name. */
-				__( 'Adbot consent required before contacting %s.', 'adbot' ),
-				$service_label
+				esc_html__( 'Adbot consent required before contacting %s.', 'adbot' ),
+				esc_html( $service_label )
 			)
 		);
 	}

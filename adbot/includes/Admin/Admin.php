@@ -2,11 +2,34 @@
 
 namespace Adbot\Admin;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class Admin {
 
 	public function __construct() {
 		add_action( 'admin_menu', [ $this, 'register_menu' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'admin_init', [ $this, 'maybe_activation_redirect' ] );
+	}
+
+	/**
+	 * After activation, load the Adbot admin app once so the welcome onboarding appears first.
+	 */
+	public function maybe_activation_redirect(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		if ( ! get_transient( 'adbot_activation_redirect' ) ) {
+			return;
+		}
+		delete_transient( 'adbot_activation_redirect' );
+		if ( isset( $_GET['activate-multi'] ) ) {
+			return;
+		}
+		wp_safe_redirect( admin_url( 'admin.php?page=adbot' ) );
+		exit;
 	}
 
 	public function register_menu(): void {
@@ -79,6 +102,14 @@ class Admin {
 			'version'   => ADBOT_VERSION,
 			'siteUrl'   => get_site_url(),
 			'siteName'  => get_bloginfo( 'name' ),
+			'brand'     => [
+				'name'        => __( 'Tracking', 'adbot' ),
+				'tagline'     => __( 'Automated Google Analytics and Tag Manager setup', 'adbot' ),
+				/* translators: Logo image for screen readers. */
+				'logoAlt'     => __( 'Tracking setup logo', 'adbot' ),
+				'logoUrl'     => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),
+				'setupTitle'  => __( 'Tracking setup', 'adbot' ),
+			],
 			'images'    => [
 				'adbot' => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),
 				'gtm'   => esc_url_raw( $images_url . 'google-products/google-tag-manager.svg' ),

@@ -1,19 +1,100 @@
-/* Adbot admin shell — complements wp-components */
+/* Adbot admin shell — aligns with https://adbot-tracking-platform.vercel.app/ (Karla + P22 Mackinac + accent orange) */
+
+/* Bundled fonts live in /font (repo root); paths are relative to this file (src/index.scss). */
+@font-face {
+	font-family: 'Karla';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('../font/Karla/Karla-Regular.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Karla';
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url('../font/Karla/Karla-Italic.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Karla';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url('../font/Karla/Karla-Bold.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'Karla';
+	font-style: italic;
+	font-weight: 700;
+	font-display: swap;
+	src: url('../font/Karla/Karla-BoldItalic.ttf') format('truetype');
+}
+
+@font-face {
+	font-family: 'P22 Mackinac Pro';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('../font/P22/P22MackinacProBook.otf') format('opentype');
+}
+
+@font-face {
+	font-family: 'P22 Mackinac Pro';
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url('../font/P22/P22MackinacProMedium.otf') format('opentype');
+}
+
+/* Roboto: required by Google Sign in with Google custom-button typography guidelines. */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 :root {
-	--adbot-primary: #2b5cff;
-	--adbot-primary-dark: #1f46c4;
-	--adbot-ink: #0f172a;
-	--adbot-ink-soft: #334155;
-	--adbot-muted: #64748b;
-	--adbot-border: #e2e8f0;
-	--adbot-bg: #f8fafc;
+	/* Mirrors marketing site CSS vars (--accent, --foreground, etc.) */
+	--adbot-font-body: 'Karla', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--adbot-font-display: 'P22 Mackinac Pro', Georgia, 'Times New Roman', serif;
+
+	--adbot-primary: #ff6900;
+	--adbot-primary-dark: #cc5400;
+	--adbot-primary-light: #ffe6d2;
+	--adbot-teal: #00baa7;
+	--adbot-secondary: #61a229;
+
+	--adbot-ink: #333333;
+	--adbot-ink-soft: #4a4a4a;
+	--adbot-muted: #6b6b6b;
+	--adbot-muted-light: #b2b2b3;
+
+	--adbot-border: #dedfe0;
+	--adbot-bg: #fafafa;
 	--adbot-white: #ffffff;
 	--adbot-radius: 10px;
 	--adbot-radius-lg: 16px;
-	--adbot-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-	--adbot-shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.14);
-	--adbot-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	--adbot-shadow: 0 8px 24px rgba(51, 51, 51, 0.08);
+	--adbot-shadow-lg: 0 20px 48px rgba(51, 51, 51, 0.12);
+
+	/* Legacy alias used across older rules */
+	--adbot-font: var(--adbot-font-body);
+}
+
+.adbot-admin,
+.adbot-wizard {
+	font-family: var(--adbot-font-body);
+	color: var(--adbot-ink);
+}
+
+.adbot-step__title,
+.adbot-wizard__brand-title {
+	font-family: var(--adbot-font-display);
+	font-weight: 500;
+}
+
+.adbot-admin__title {
+	font-family: var(--adbot-font-display);
+	font-weight: 500;
 }
 
 /* ---------- Wizard overlay ---------- */
@@ -22,14 +103,19 @@
 	position: fixed;
 	inset: 0;
 	z-index: 99999;
-	font-family: var(--adbot-font);
+	font-family: var(--adbot-font-body);
 	color: var(--adbot-ink);
 }
 
 .adbot-wizard__backdrop {
 	position: absolute;
 	inset: 0;
-	background: radial-gradient(1200px 600px at 20% 10%, #eef2ff 0%, var(--adbot-bg) 55%, #f1f5f9 100%);
+	background: radial-gradient(
+		1200px 600px at 20% 10%,
+		var(--adbot-primary-light) 0%,
+		var(--adbot-white) 55%,
+		var(--adbot-bg) 100%
+	);
 }
 
 .adbot-wizard__frame {
@@ -68,7 +154,35 @@
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--adbot-primary), #8b5cf6);
+	background: linear-gradient(135deg, var(--adbot-primary), var(--adbot-teal));
+}
+
+.adbot-wizard__brand-logo {
+	width: 44px;
+	height: 44px;
+	object-fit: cover;
+	flex-shrink: 0;
+}
+
+.adbot-wizard__brand-text {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+
+.adbot-wizard__brand-title {
+	font-weight: 700;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+	line-height: 1.2;
+}
+
+.adbot-wizard__brand-tagline {
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--adbot-muted);
+	line-height: 1.35;
 }
 
 .adbot-wizard__steps {
@@ -174,12 +288,43 @@
 	gap: 20px;
 }
 
+.adbot-step__welcome-hero {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	margin-bottom: 4px;
+}
+
+.adbot-step__welcome-logo {
+	object-fit: cover;
+	flex-shrink: 0;
+	box-shadow: var(--adbot-shadow);
+}
+
+.adbot-step__welcome-headlines {
+	min-width: 0;
+}
+
+.adbot-step__brand-name {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--adbot-ink);
+}
+
+.adbot-step__brand-tagline {
+	margin: 6px 0 0;
+	font-size: 13px;
+	color: var(--adbot-muted);
+	line-height: 1.4;
+}
+
 .adbot-step__eyebrow {
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.08em;
 	text-transform: uppercase;
-	color: var(--adbot-primary);
+	color: var(--adbot-primary-dark);
 }
 
 .adbot-step__title {
@@ -260,14 +405,66 @@
 
 .adbot-btn--large { padding: 16px 28px; font-size: 16px; }
 
-.adbot-btn--google::before {
-	content: '';
-	display: inline-block;
-	width: 16px;
-	height: 16px;
-	background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="%23FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.8 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6 29.2 4 24 4 13 4 4 13 4 24s9 20 20 20c11 0 20-9 20-20 0-1.2-.1-2.3-.4-3.5z"/><path fill="%23FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.6 18.9 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6 29.2 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="%234CAF50" d="M24 44c5 0 9.6-1.9 13-5l-6-5.1c-2 1.4-4.4 2.1-7 2.1-5.3 0-9.8-3.4-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="%231976D2" d="M43.6 20.5H42V20H24v8h11.3c-.7 2-2 3.7-3.7 4.9l6.1 5.1c4.3-3.9 6.8-9.7 6.3-16-.1-.5-.1-1-.1-1.5z"/></svg>') center/contain no-repeat;
-	background-color: #fff;
-	border-radius: 2px;
+/* Sign in with Google — light neutral theme (not Adbot orange). See branding guidelines. */
+.adbot-google-signin-btn {
+	box-sizing: border-box;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	min-height: 40px;
+	padding: 0 14px;
+	border: 1px solid #dadce0;
+	border-radius: 4px;
+	background: #fff;
+	color: #1f1f1f;
+	font-family: 'Roboto', system-ui, -apple-system, sans-serif;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1;
+	cursor: pointer;
+	transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.adbot-google-signin-btn:hover:not(:disabled) {
+	background: #f8f9fa;
+	border-color: #d2d3d4;
+	box-shadow: 0 1px 2px rgba(60, 64, 67, 0.12);
+}
+
+.adbot-google-signin-btn:focus {
+	outline: none;
+}
+
+.adbot-google-signin-btn:focus-visible {
+	outline: 2px solid #1a73e8;
+	outline-offset: 2px;
+}
+
+.adbot-google-signin-btn:disabled {
+	opacity: 0.65;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+.adbot-google-signin-btn__icon {
+	display: inline-flex;
+	flex-shrink: 0;
+}
+
+.adbot-google-signin-btn__icon svg {
+	display: block;
+}
+
+.adbot-google-signin-btn--large {
+	min-height: 48px;
+	padding: 0 18px;
+	font-size: 15px;
+}
+
+.adbot-google-signin-btn--large .adbot-google-signin-btn__icon svg {
+	width: 20px;
+	height: 20px;
 }
 
 /* ---------- Cards / tiles ---------- */
@@ -451,7 +648,7 @@
 	flex-direction: column;
 	gap: 16px;
 	padding: 24px;
-	background: linear-gradient(135deg, #eef2ff, #fdf4ff);
+	background: linear-gradient(135deg, var(--adbot-primary-light), var(--adbot-white));
 	border: 1px solid var(--adbot-border);
 	border-radius: var(--adbot-radius-lg);
 }
@@ -488,9 +685,14 @@
 /* ---------- Dashboard checklist ---------- */
 
 .adbot-checklist {
-	margin: 16px 0 24px;
+	margin: 4px 0 12px;
 	padding: 20px;
-	background: linear-gradient(135deg, #eef2ff, #fdf4ff);
+	background-color: var(--adbot-white);
+	background-image: linear-gradient(
+		165deg,
+		rgba(255, 230, 210, 0.35) 0%,
+		var(--adbot-white) 52%
+	);
 	border: 1px solid var(--adbot-border);
 	border-radius: var(--adbot-radius-lg);
 }
@@ -507,7 +709,7 @@
 	padding: 0;
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-	gap: 8px;
+	gap: 12px;
 }
 @media (max-width: 600px) {
 	.adbot-checklist__steps { grid-template-columns: 1fr; }
@@ -516,7 +718,7 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 8px 12px;
+	padding: 10px 14px;
 	border-radius: 8px;
 	background: rgba(255, 255, 255, 0.6);
 	font-size: 13px;
@@ -551,37 +753,57 @@
 
 
 .adbot-admin {
-	max-width: 1200px;
-	margin: 0 0 24px;
+	max-width: none;
+	width: 100%;
+	margin: 0 0 32px;
+	padding-top: 16px;
 	font-size: 14px;
 	line-height: 1.5;
-	color: #1d2327;
+	color: var(--adbot-ink);
 }
 
 .adbot-admin__header {
-	margin-bottom: 16px;
-	padding-bottom: 12px;
+	margin-bottom: 24px;
+	padding-bottom: 18px;
 	border-bottom: 1px solid #c3c4c7;
 }
 
-.adbot-admin__header h1 {
-	margin: 0;
-	font-size: 23px;
-	font-weight: 400;
+.adbot-admin__identity {
+	display: flex;
+	align-items: center;
+	gap: 14px;
 }
 
-.adbot-admin__logo {
-	font-weight: 600;
+.adbot-admin__identity-logo {
+	object-fit: cover;
+	flex-shrink: 0;
+}
+
+.adbot-admin__identity-text {
+	min-width: 0;
+}
+
+.adbot-admin__title {
+	margin: 0;
+	font-size: 23px;
+	line-height: 1.25;
+}
+
+.adbot-admin__tagline {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: var(--adbot-muted);
+	line-height: 1.35;
 }
 
 .adbot-admin__body {
 	display: flex;
-	gap: 24px;
+	gap: 32px;
 	align-items: flex-start;
 }
 
 .adbot-admin__sidebar {
-	flex: 0 0 200px;
+	flex: 0 0 232px;
 }
 
 .adbot-admin__sidebar ul {
@@ -598,49 +820,127 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	padding: 8px 10px;
+	padding: 10px 12px;
 	text-decoration: none;
-	color: #1d2327;
+	color: var(--adbot-ink);
 	border-radius: 4px;
 }
 
 .adbot-nav-item:hover {
-	background: #f0f0f1;
-	color: #1d2327;
+	background: rgba(255, 105, 0, 0.06);
+	color: var(--adbot-ink);
 }
 
 .adbot-nav-item--active {
-	background: #f0f6fc;
-	color: #2271b1;
+	background: var(--adbot-primary-light);
+	color: var(--adbot-primary-dark);
 	font-weight: 600;
+}
+
+.adbot-nav-item--disabled {
+	opacity: 0.48;
+	cursor: not-allowed;
+	user-select: none;
 }
 
 .adbot-admin__content {
 	flex: 1;
 	min-width: 0;
-	background: #fff;
-	border: 1px solid #c3c4c7;
+	background: var(--adbot-white);
+	border: 1px solid var(--adbot-border);
 	border-radius: 4px;
-	padding: 20px 24px;
+	padding: 28px 36px 40px;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 }
 
-.adbot-dashboard__cards,
-.adbot-connect__section {
-	display: grid;
+.adbot-admin .button.button-primary {
+	background: var(--adbot-primary);
+	border-color: var(--adbot-primary-dark);
+	color: #fff;
+	text-shadow: none;
+}
+
+.adbot-admin .button.button-primary:hover,
+.adbot-admin .button.button-primary:focus {
+	background: var(--adbot-primary-dark);
+	border-color: var(--adbot-primary-dark);
+	color: #fff;
+}
+
+.adbot-dashboard {
+	display: flex;
+	flex-direction: column;
 	gap: 16px;
 }
 
-@media (min-width: 900px) {
-	.adbot-dashboard__cards {
-		grid-template-columns: repeat(3, 1fr);
+.adbot-dashboard__header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px 20px;
+}
+
+.adbot-dashboard__intro {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 0;
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.adbot-dashboard__header-actions {
+	flex: 0 0 auto;
+	padding-top: 2px;
+}
+
+@media (max-width: 600px) {
+	.adbot-dashboard__header-actions {
+		flex: 1 1 100%;
 	}
+}
+
+.adbot-dashboard__heading {
+	margin: 0;
+	font-family: var(--adbot-font-display);
+	font-size: 23px;
+	font-weight: 500;
+	line-height: 1.25;
+	color: var(--adbot-ink);
+}
+
+.adbot-dashboard__lede {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.45;
+	color: var(--adbot-muted);
+	max-width: 48rem;
+}
+
+.adbot-dashboard__cards {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+@media (min-width: 1100px) {
+	.adbot-dashboard__cards {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.adbot-connect__section {
+	display: grid;
+	gap: 18px;
+	grid-template-columns: 1fr;
 }
 
 .adbot-status-card {
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
-	padding: 14px 16px;
+	padding: 18px 20px;
 	background: #fcfcfc;
 }
 
@@ -687,10 +987,11 @@
 }
 
 .adbot-dashboard__actions {
-	margin-top: 20px;
+	margin-top: 0;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 10px;
+	gap: 12px;
+	align-items: center;
 }
 
 .adbot-connect__account {

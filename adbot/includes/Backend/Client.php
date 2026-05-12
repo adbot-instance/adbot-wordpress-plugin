@@ -2,6 +2,10 @@
 
 namespace Adbot\Backend;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Adbot\Consent;
 use Adbot\Consent_Required_Exception;
 
@@ -13,6 +17,11 @@ use Adbot\Consent_Required_Exception;
  * services directly.
  */
 class Client {
+	/**
+	 * Production Adbot Tracking API root (no trailing slash).
+	 * When migrating off Vercel’s default hostname, update this to e.g.
+	 * https://tracking.adbot.co.za/api/wp — backend routes stay under `/api/wp`.
+	 */
 	public const DEFAULT_BASE = 'https://adbot-tracking-platform.vercel.app/api/wp';
 
 	public static function base_url(): string {
@@ -57,7 +66,7 @@ class Client {
 		if ( $require_auth ) {
 			$token = Token_Store::get_site_token();
 			if ( '' === $token ) {
-				throw new Backend_Exception( 'not_registered', __( 'Adbot has not finished registering this site with the Adbot service. Please reload the page in a moment.', 'adbot' ), 503 );
+				throw new Backend_Exception( 'not_registered', __( 'Adbot has not finished registering this site with the Adbot service. Please reload the page in a moment.', 'adbot' ), 503 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 			$headers['Authorization'] = 'Bearer ' . $token;
 		}
@@ -74,7 +83,7 @@ class Client {
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			throw new Backend_Exception( 'network_error', $response->get_error_message(), 502 );
+			throw new Backend_Exception( 'network_error', $response->get_error_message(), 502 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 		}
 
 		$status = (int) wp_remote_retrieve_response_code( $response );
@@ -90,6 +99,6 @@ class Client {
 			? (string) $json['message']
 			: sprintf( /* translators: %d: HTTP status code */ __( 'Adbot backend returned HTTP %d.', 'adbot' ), $status );
 
-		throw new Backend_Exception( $code, $message, $status );
+		throw new Backend_Exception( $code, $message, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 	}
 }

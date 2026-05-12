@@ -1,0 +1,6 @@
+# Rsync exclude patterns (relative to `adbot/`) for distribution zips.
+#
+# `composer.json` and `composer.lock` are intentionally INCLUDED in the ZIP so
+# WordPress.org Plugin Check can validate Composer metadata when `vendor/` is shipped.
+#
+# Add patterns below only when you need to omit files from releases (e.g. dev-only paths).

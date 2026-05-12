@@ -1,7 +1,6 @@
 <?php
 /**
  * Plugin Name: Adbot
- * Plugin URI:  https://adbot.co.za
  * Description: Connect your Google marketing stack (GTM, GA4, Ads, Merchant Center, Business Profile) in one click. Automatically injects your GTM container and audits your tracking setup.
  * Version:     1.0.0
  * Author:      Adbot
@@ -26,10 +25,14 @@ define( 'ADBOT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
  * Adbot requires no secrets or user configuration. All Google / Supabase /
- * Paystack traffic is proxied through the Adbot backend on Vercel.
+ * Paystack traffic is proxied through the Adbot Tracking backend on Vercel.
  *
- * Optional overrides (development only):
- *   define( 'ADBOT_API_BASE', 'https://staging.api.adbot.co.za/wp/v1' );
+ * Default API root matches Backend\Client::DEFAULT_BASE (currently the
+ * `adbot-tracking-platform.vercel.app` deployment). Planned production hostname:
+ * `tracking.adbot.co.za` — update Client::DEFAULT_BASE when DNS is switched.
+ *
+ * Optional overrides in wp-config.php:
+ *   define( 'ADBOT_API_BASE', 'https://preview-branch.vercel.app/api/wp' ); // staging / alternate backend
  *   define( 'ADBOT_DEBUG', true );
  */
 
@@ -44,6 +47,5 @@ register_deactivation_hook( __FILE__, [ 'Adbot\\Deactivator', 'deactivate' ] );
 
 // Boot.
 add_action( 'plugins_loaded', function () {
-	load_plugin_textdomain( 'adbot', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	Adbot\Adbot::instance();
 } );

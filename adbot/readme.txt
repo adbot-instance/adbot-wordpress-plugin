@@ -2,7 +2,7 @@
 Contributors: keegalix
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
-Tested up to: 6.7
+Tested up to: 6.9
 Stable tag: 1.0.0
 Requires PHP: 8.0
 License: GPLv2 or later
@@ -26,32 +26,36 @@ Features:
 
 This plugin sends data to third-party services to provide its functionality. **No external requests are made until you explicitly start the connection flow in the plugin UI.** The plugin stores an opt-in flag (`adbot_consent_given`) and refuses to contact any external service until the flag is true.
 
-The plugin communicates **only** with the Adbot backend service (`api.adbot.co.za`). The Adbot backend then relays authorized requests to the following services on your behalf:
+The plugin communicates **only** with the Adbot Tracking backend service (`https://adbot-tracking-platform.vercel.app`). The same API will later be served from `https://tracking.adbot.co.za` when DNS is migrated; until then the plugin uses the Vercel deployment URL. The Adbot backend then relays authorized requests to the following services on your behalf:
 
-* **Adbot backend** (`https://api.adbot.co.za`) — the proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
+* **Adbot Tracking backend** (`https://adbot-tracking-platform.vercel.app/api/wp`) — the proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
 * **Google OAuth and Google APIs** (called server-side by the Adbot backend) — authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Ads, Search Console). Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
 * **Supabase** (called server-side by the Adbot backend) — stores the account linkage and encrypted OAuth tokens. Terms: https://supabase.com/terms · Privacy: https://supabase.com/privacy
 * **Paystack** (called server-side by the Adbot backend) — processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/terms · Privacy: https://paystack.com/privacy
 
-Data sent from your WordPress site to the Adbot backend: site URL, site name, WordPress version, admin email (on first activation only), and — per feature — the Google container you choose, the audit parameters you run, and the payment reference you verify. The WordPress site never sees, stores, or transmits your Google OAuth tokens directly; those live on the Adbot backend and are encrypted at rest.
+Data sent from your WordPress site to the Adbot backend: site URL, site name, WordPress version, admin email (when the site first registers with the backend), and — per feature — the Google container you choose, the audit parameters you run, and the payment reference you verify. The WordPress site never sees, stores, or transmits your Google OAuth tokens directly; those live on the Adbot backend and are encrypted at rest.
 
 == Installation ==
 
 1. Upload the `adbot` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Go to the Adbot menu in the WordPress admin.
-4. Review the external-services disclosure on the Settings tab, then tick the consent toggle.
-5. Follow the onboarding wizard to connect Google and install your GTM container.
+3. Go to the **Adbot** menu in the WordPress admin.
+4. In the Adbot admin screen, open **Settings** in the sidebar to review the external-services disclosure. Enable the consent toggle there before connecting, or follow the onboarding wizard / Google connection flow (consent may be recorded when you start a connection).
+5. Complete onboarding to connect Google and install your GTM container when ready.
 
 == Frequently Asked Questions ==
 
 = Does this plugin make external requests on activation? =
 
-No. Activation only seeds local defaults and sets the consent flag to false. External requests occur only after you tick the consent toggle AND explicitly start a connection or feature in the plugin UI.
+No. Activation only seeds local defaults and sets the consent flag to false. External requests occur only after consent has been granted (via the Settings toggle or when starting a flow that records consent, such as Google connection) and the plugin performs the corresponding action.
+
+= Why does the plugin say the site is still registering or “not finished registering”? =
+
+Before Google OAuth, the plugin registers your site with the Adbot backend and stores a per-site token. The backend verifies ownership by requesting a public URL on your WordPress site (`/wp-json/adbot/v1/verify`). Your **Settings → General → Site Address (URL)** must therefore be reachable from the internet (for example a live HTTPS domain or an HTTPS tunnel). Installations that only use `http://localhost` as the site URL generally cannot finish registration because the backend cannot reach that address.
 
 = Where are my OAuth tokens stored? =
 
-Access and refresh tokens are encrypted with a key you configure (via the `ADBOT_ENCRYPTION_KEY` constant in `wp-config.php` or the plugin Settings screen) and sent to the Adbot backend (Supabase) for use during API calls. Tokens are never logged and never written to your WordPress database in plaintext.
+Google OAuth access and refresh tokens are **not** stored in your WordPress database. They are held and encrypted **on the Adbot backend** (and associated storage). The plugin only keeps an encrypted **site token** (used to authenticate API calls to the backend). That site token is encrypted at rest in WordPress using AES-256-GCM with a key derived from your `wp-config.php` authentication salts (`AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, `NONCE_KEY`). No separate encryption key is required from you for OAuth tokens.
 
 = How do I revoke Google access? =
 
@@ -69,7 +73,7 @@ No. The plugin works out of the box. There are no secrets, API keys, OAuth clien
 
 Define either in `wp-config.php` (both optional):
 
-* `ADBOT_API_BASE` — point the plugin at a staging Adbot backend (defaults to `https://api.adbot.co.za/wp/v1`).
+* `ADBOT_API_BASE` — point the plugin at a staging or alternate backend (defaults to `https://adbot-tracking-platform.vercel.app/api/wp`; omit trailing slash).
 * `ADBOT_DEBUG` — verbose error logging when `WP_DEBUG` is on.
 
 == Screenshots ==

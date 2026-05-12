@@ -1,6 +1,8 @@
 import { useEffect, useState } from '@wordpress/element';
+import { __, sprintf } from '@wordpress/i18n';
 import { useOnboarding } from '../OnboardingProvider';
 import { getAuthStatus, initiateOAuth } from '../../api/auth';
+import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function StepConnect() {
 	const { advance, refresh } = useOnboarding();
@@ -48,25 +50,32 @@ export default function StepConnect() {
 
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 1 of 6</div>
-			<h1 className="adbot-step__title">Connect your Google account</h1>
+			<div className="adbot-step__eyebrow">
+				{ sprintf(
+					/* translators: 1: current step number after Welcome, 2: total setup steps (excluding Welcome). */
+					__( 'Step %1$d of %2$d', 'adbot' ),
+					1,
+					6
+				) }
+			</div>
+			<h1 className="adbot-step__title">{ __( 'Connect your Google account', 'adbot' ) }</h1>
 			<p className="adbot-step__lede">
-				Adbot needs read & write access to Google Tag Manager, Analytics, Ads, Merchant Center,
-				and Business Profile so it can audit and fix your tracking.
+				{ __(
+					'Read and write access to Google Tag Manager, Analytics, Ads, Merchant Center, and Business Profile is required so we can audit and fix your tracking.',
+					'adbot'
+				) }
 			</p>
 
 			{ error && <p className="adbot-error">{ error }</p> }
 
 			{ ! account && (
 				<div className="adbot-step__actions">
-					<button
-						type="button"
-						className="adbot-btn adbot-btn--primary adbot-btn--google"
+					<GoogleSignInButton
+						variant="continue"
 						onClick={ handleConnect }
-						disabled={ connecting }
-					>
-						{ connecting ? 'Opening Google…' : 'Continue with Google' }
-					</button>
+						loading={ connecting }
+						size="large"
+					/>
 				</div>
 			) }
 
@@ -74,7 +83,7 @@ export default function StepConnect() {
 				<div className="adbot-account-card">
 					{ account.picture && <img src={ account.picture } alt="" /> }
 					<div>
-						<strong>{ account.name || 'Google account' }</strong>
+						<strong>{ account.name || __( 'Google account', 'adbot' ) }</strong>
 						<span>{ account.email }</span>
 					</div>
 					<button
@@ -82,7 +91,7 @@ export default function StepConnect() {
 						className="adbot-btn adbot-btn--primary"
 						onClick={ handleContinue }
 					>
-						Continue
+						{ __( 'Continue', 'adbot' ) }
 					</button>
 				</div>
 			) }

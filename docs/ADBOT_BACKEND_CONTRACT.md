@@ -2,16 +2,20 @@
 
 The plugin is a thin client. The Vercel backend owns Google OAuth client secret, Paystack secret, Supabase service key, and token encryption. The plugin never touches Google/Paystack/Supabase directly.
 
-- **Base URL:** `ADBOT_API_BASE` (default `https://api.adbot.co.za/wp/v1`, overridable via `define( 'ADBOT_API_BASE', '…' )` in `wp-config.php`).
+- **Base URL:** `ADBOT_API_BASE` (default `https://adbot-tracking-platform.vercel.app/api/wp`, matching `Adbot\Backend\Client::DEFAULT_BASE`; planned migration to `https://tracking.adbot.co.za/api/wp`). Override via `define( 'ADBOT_API_BASE', '…' )` in `wp-config.php` (no trailing slash).
 - **Auth:** every request except `/sites/register` and `/sites/verify` carries `Authorization: Bearer <site_token>`. `site_token` is a per-site opaque string minted by the backend.
 - **Content type:** JSON, UTF-8.
 - **Errors:** non-2xx responses MUST return `{ "code": "<snake_case>", "message": "<human readable>", "details": { … } }`. The plugin surfaces `message` verbatim.
 
-## Site registration (activation flow)
+## Site registration (first-use flow)
+
+Registration is **not** tied to the activation hook alone. The plugin attempts registration on **`admin_init`** when consent has been granted and a site token is not yet stored (`Site_Registration::maybe_register`), debounced to at most once per minute while the token is missing.
+
+For verification to succeed, the backend must perform `GET <verification_url>` against the WordPress site’s public URL. **`localhost` URLs are typically unreachable** from the hosted backend; use a publicly resolvable HTTPS Site Address (or a tunnel) for development.
 
 ### `POST /sites/register`
 
-Called once on plugin activation. No auth header.
+Called from WordPress when registering the site. No auth header.
 
 **Request:**
 ```json
@@ -49,7 +53,7 @@ Called by the plugin immediately after register. No auth header.
 
 Backend action:
 1. Performs `GET <verification_url>` server-side.
-2. The plugin's public `/wp-json/adbot/v1/verify?challenge=…` endpoint returns `{ "nonce": "<same nonce>" }` only if the challenge matches what was stored in a transient.
+2. The plugin's public `/wp-json/adbot/v1/verify?challenge=…` endpoint returns `{ "nonce": "<same nonce>" }` (JSON) only if the challenge matches what was stored in a transient.
 3. If the returned nonce matches, backend marks the site `verified` and mints a `site_token`.
 
 **Response 200:**
@@ -57,7 +61,7 @@ Backend action:
 { "site_token": "st_…" }
 ```
 
-After this, the plugin stores `site_token` (encrypted at rest with a key derived from WP salts) and uses it on every subsequent request.
+After this, the plugin stores `site_token` encrypted at rest (`Token_Store`) and uses it on every subsequent request.
 
 ### `POST /sites/heartbeat`
 
@@ -73,7 +77,7 @@ Request:
 ```
 Response 200:
 ```json
-{ "auth_url": "https://api.adbot.co.za/wp/v1/auth/google/callback?state=…" }
+{ "auth_url": "https://adbot-tracking-platform.vercel.app/api/wp/auth/google/callback?state=…" }
 ```
 Plugin opens `auth_url` in a popup or top-level window.
 
@@ -156,17 +160,22 @@ Request:
 ```json
 { "audit_id": "optional" }
 ```
-Response 200:
+
+Response **200** — JSON is passed through to the payment UI. The browser flow expects fields compatible with Paystack Inline, for example:
+
 ```json
 {
-  "authorization_url": "https://checkout.paystack.com/…",
-  "reference":         "adbot_xxxx",
-  "amount_subunits":   4999900,
-  "currency":          "ZAR"
+  "publicKey": "pk_test_…",
+  "email":     "admin@example.com",
+  "amount":    4999900,
+  "currency":  "ZAR",
+  "reference": "adbot_xxxx"
 }
 ```
 
-Plugin redirects the browser to `authorization_url`.
+(`amount` is typically expressed in the smallest currency unit; confirm against your backend implementation.)
+
+The plugin opens Paystack’s inline checkout using these values.
 
 ### `POST /payments/verify`
 
@@ -190,13 +199,13 @@ Backend pushes entitlement changes back to the site when Paystack webhook fires.
 
 - Plugin never holds Google client secret, Paystack secret, or Supabase service key.
 - `site_token` is the only bearer credential; it identifies the site, not a user. Backend enforces rate limits and revokes tokens on `/auth/disconnect`.
-- Plugin encrypts `site_token` at rest in `wp_options` using AES-256-GCM with a key derived from `AUTH_KEY . SECURE_AUTH_KEY` WP salts via `hash_hmac( 'sha256', 'adbot-site-token-key', $salts )`. No key shipped.
+- Plugin encrypts `site_token` at rest in `wp_options` using AES-256-GCM with a key derived from `AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, and `NONCE_KEY` via `hash_hmac( 'sha256', 'adbot-site-token-key-v1', $salts )` (see `Token_Store::key()`). No key shipped.
 - Backend verifies site ownership via the HTTP challenge-response on registration. A token is only minted after the verify callback succeeds.
 - All inbound webhooks are HMAC-signed.
 
 ## Plugin-side constants (all optional, for overrides only)
 
-- `ADBOT_API_BASE` — point the plugin at a staging backend.
+- `ADBOT_API_BASE` — point the plugin at a staging or alternate backend (same path prefix as production, e.g. `…/api/wp`).
 - `ADBOT_DEBUG` — verbose logging when `WP_DEBUG` is on.
 
 No secrets required. No `.env` file required. No user configuration required.

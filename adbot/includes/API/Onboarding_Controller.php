@@ -4,6 +4,10 @@ namespace Adbot\API;
 
 use WP_REST_Request;
 use WP_REST_Response;
+use Adbot\Consent;
+use Adbot\Backend\Client;
+use Adbot\Backend\Backend_Exception;
+use Adbot\Backend\Token_Store;
 
 class Onboarding_Controller extends REST_Controller {
 
@@ -148,10 +152,29 @@ class Onboarding_Controller extends REST_Controller {
 	/**
 	 * Merge stored state with live status so the resolved step always reflects reality.
 	 */
+	/**
+	 * Same notion of “Google connected” as Status_Controller / Dashboard (backend auth status).
+	 */
+	private function is_google_connected(): bool {
+		if ( ! Consent::has_consent() ) {
+			return false;
+		}
+		if ( '' === Token_Store::get_site_token() ) {
+			return false;
+		}
+		try {
+			$result = ( new Client() )->get( '/auth/status' );
+
+			return (bool) ( $result['connected'] ?? false );
+		} catch ( Backend_Exception $e ) {
+			return false;
+		}
+	}
+
 	private function resolve_state(): array {
 		$state = $this->read_state();
 
-		$connected       = ! empty( get_option( 'adbot_account_id' ) );
+		$connected       = $this->is_google_connected();
 		$snippet_active  = (bool) get_option( 'adbot_snippet_active' );
 		$container_id    = (string) get_option( 'adbot_snippet_container_id', '' );
 

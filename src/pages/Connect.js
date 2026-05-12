@@ -4,6 +4,7 @@ import { Notice, Modal, Button } from '@wordpress/components';
 import { getAuthStatus, initiateOAuth, disconnect } from '../api/auth';
 import { installSnippet, uninstallSnippet } from '../api/settings';
 import ContainerSelector from '../components/ContainerSelector';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Connect() {
 	const [ authStatus, setAuthStatus ] = useState( null );
@@ -98,15 +99,12 @@ export default function Connect() {
 							'adbot'
 						) }
 					</p>
-					<button
-						className="button button-primary button-hero"
+					<GoogleSignInButton
+						variant="continue"
 						onClick={ handleConnect }
-						disabled={ connecting }
-					>
-						{ connecting
-							? __( 'Opening Google…', 'adbot' )
-							: __( 'Connect with Google', 'adbot' ) }
-					</button>
+						loading={ connecting }
+						size="large"
+					/>
 				</div>
 			) }
 

@@ -2,6 +2,10 @@
 
 namespace Adbot\Backend;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Adbot\Consent;
 
 /**

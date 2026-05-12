@@ -1,9 +1,12 @@
-# Dependencies
-/vendor/
-/node_modules/
+# Build artifacts
+/dist/
 
-# Build output
-/build/
+# Dependencies
+/node_modules/
+/adbot/vendor/
+
+# Build output (admin bundle is emitted under the WordPress plugin tree)
+/adbot/build/
 
 # Environment
 .env
@@ -24,3 +27,6 @@ composer.lock
 
 # npm
 package-lock.json
+
+# development
+.ADBOT_BACKEND

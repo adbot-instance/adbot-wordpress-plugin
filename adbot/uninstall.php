@@ -31,17 +31,19 @@ function adbot_uninstall_single_site(): void {
 
 	foreach ( [ 'adbot_containers', 'adbot_audit_', 'adbot_site_challenge', 'adbot_site_register_attempt' ] as $prefix ) {
 		$like = $wpdb->esc_like( '_transient_' . $prefix ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like ) );
 
 		$like_timeout = $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s", $like_timeout ) );
 	}
 }
 
 if ( is_multisite() ) {
-	$site_ids = get_sites( [ 'fields' => 'ids' ] );
-	foreach ( $site_ids as $site_id ) {
-		switch_to_blog( (int) $site_id );
+	$adbot_site_ids = get_sites( [ 'fields' => 'ids' ] );
+	foreach ( $adbot_site_ids as $adbot_site_id ) {
+		switch_to_blog( (int) $adbot_site_id );
 		adbot_uninstall_single_site();
 		restore_current_blog();
 	}

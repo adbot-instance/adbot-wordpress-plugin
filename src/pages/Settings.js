@@ -52,7 +52,7 @@ export default function Settings() {
 				<strong>{ __( 'External services', 'adbot' ) }</strong>
 				<p>
 					{ __(
-						'This plugin communicates only with the Adbot backend service at api.adbot.co.za. The Adbot backend relays authorized requests on your behalf to Google (OAuth, Tag Manager, Analytics, Ads, Search Console), Supabase (token storage), and Paystack (payments). Your WordPress site never talks to these providers directly, and no external request is made until the Consent toggle below is enabled AND you start a connection.',
+						'This plugin communicates only with the Adbot Tracking backend (adbot-tracking-platform.vercel.app). That service will move to tracking.adbot.co.za when DNS is ready; until then traffic uses the Vercel hostname. The backend relays authorized requests on your behalf to Google (OAuth, Tag Manager, Analytics, Ads, Search Console), Supabase (token storage), and Paystack (payments). Your WordPress site never talks to these providers directly, and no external request is made until the Consent toggle below is enabled AND you start a connection.',
 						'adbot'
 					) }
 				</p>

@@ -6,7 +6,7 @@ import ScoreGauge from '../../components/ScoreGauge';
 const SEVERITY_META = [
 	[ 'critical', 'Critical', '#d63638' ],
 	[ 'high', 'High', '#dba617' ],
-	[ 'medium', 'Medium', '#2271b1' ],
+	[ 'medium', 'Medium', '#ff6900' ],
 	[ 'low', 'Low', '#50575e' ],
 ];
 
@@ -52,8 +52,8 @@ export default function StepReport() {
 				<div className="adbot-step__eyebrow">Step 4 of 6</div>
 				<h1 className="adbot-step__title">Your tracking is in great shape 🎉</h1>
 				<p className="adbot-step__lede">
-					We scanned your container and found no tracking gaps. No fixes needed — and no
-					payment required. You're ready to go.
+					We scanned your container and found no tracking gaps. No fixes needed, and no
+					payment required. You are ready to go.
 				</p>
 
 				<div className="adbot-report">
@@ -121,7 +121,7 @@ export default function StepReport() {
 					<div>
 						<h3>Unlock the full report & auto-fix</h3>
 						<p>
-							Pay once and Adbot will apply every fix directly to your GTM workspace and
+							Pay once and we will apply every fix directly to your GTM workspace and
 							publish a new version for you.
 						</p>
 					</div>
@@ -133,7 +133,7 @@ export default function StepReport() {
 					>
 						{ summary.total === 0
 							? 'Nothing to fix 🎉'
-							: `Unlock & fix — ${ currency } ${ price }` }
+							: `Unlock & fix (${ currency } ${ price })` }
 					</button>
 				</div>
 			</div>

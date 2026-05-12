@@ -1,36 +1,3 @@
-.cursor/
-.git/
-.github/
-.gitignore
-.gitattributes
-.editorconfig
-.env
-.env.*
-*.log
-*.md
-node_modules/
-src/
-tests/
-tools/
-dist/
-vendor/bin/
-vendor/phpunit/
-vendor/squizlabs/
-vendor/wp-coding-standards/
-vendor/dealerdirect/
-vendor/phpcompatibility/
-vendor/phpstan/
-vendor/friendsofphp/
-package.json
-ADBOT_BACKEND_CONTRACT.md
-package-lock.json
-pnpm-lock.yaml
-yarn.lock
-composer.json
-composer.lock
-phpcs.xml
-phpcs.xml.dist
-phpstan.neon
-phpstan.neon.dist
-WORDPRESS_COMPLIANCE_PLAN.md
-agent-transcripts/
+# Legacy note: release zips are built with `dev/tools/build-release.sh`, which
+# stages from `adbot/` using `.plugin-build-excludes`. This file is kept for
+# any tooling that still references `.distignore`.

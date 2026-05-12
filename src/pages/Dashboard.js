@@ -1,8 +1,11 @@
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useCallback } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import { useNavigate } from 'react-router-dom';
 import StatusCard from '../components/StatusCard';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { getStatus } from '../api/settings';
+import { initiateOAuth } from '../api/auth';
 
 function readLastAudit() {
 	try {
@@ -20,17 +23,22 @@ export default function Dashboard() {
 	const [ status, setStatus ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
 	const [ lastAudit, setLastAudit ] = useState( null );
+	const [ connecting, setConnecting ] = useState( false );
 	const navigate = useNavigate();
+
+	const refreshStatus = useCallback( () => {
+		return getStatus()
+			.then( ( data ) => {
+				setStatus( data );
+				return data;
+			} )
+			.catch( () => null );
+	}, [] );
 
 	useEffect( () => {
 		setLastAudit( readLastAudit() );
-		getStatus()
-			.then( ( data ) => {
-				setStatus( data );
-				setLoading( false );
-			} )
-			.catch( () => setLoading( false ) );
-	}, [] );
+		refreshStatus().finally( () => setLoading( false ) );
+	}, [ refreshStatus ] );
 
 	useEffect( () => {
 		const refresh = () => setLastAudit( readLastAudit() );
@@ -38,8 +46,30 @@ export default function Dashboard() {
 		return () => window.removeEventListener( 'adbot-last-audit', refresh );
 	}, [] );
 
+	useEffect( () => {
+		const onFocus = () => {
+			setTimeout( () => refreshStatus(), 800 );
+		};
+		window.addEventListener( 'focus', onFocus );
+		return () => window.removeEventListener( 'focus', onFocus );
+	}, [ refreshStatus ] );
+
+	const handleConnectGoogle = async () => {
+		setConnecting( true );
+		try {
+			const { url } = await initiateOAuth();
+			const popup = window.open( url, 'adbot-oauth', 'width=600,height=700' );
+			if ( ! popup ) {
+				window.location.href = url;
+			}
+		} catch ( e ) {
+			// Error surfaces on next status poll / Connect wizard.
+		}
+		setConnecting( false );
+	};
+
 	if ( loading ) {
-		return <p>Loading...</p>;
+		return <p>{ __( 'Loading…', 'adbot' ) }</p>;
 	}
 
 	const connected = status?.connected;
@@ -48,8 +78,22 @@ export default function Dashboard() {
 
 	return (
 		<div className="adbot-dashboard">
-			<h2>Dashboard</h2>
-			<p>Overview of your Adbot tracking setup.</p>
+			<div className="adbot-dashboard__header">
+				<div className="adbot-dashboard__intro">
+					<h2 className="adbot-dashboard__heading">{ __( 'Dashboard', 'adbot' ) }</h2>
+					<p className="adbot-dashboard__lede">
+						{ __( 'Overview of your tracking setup.', 'adbot' ) }
+					</p>
+				</div>
+				{ ! connected && (
+					<div className="adbot-dashboard__header-actions">
+						<GoogleSignInButton
+							onClick={ handleConnectGoogle }
+							loading={ connecting }
+						/>
+					</div>
+				) }
+			</div>
 
 			<OnboardingChecklist />
 
@@ -107,23 +151,27 @@ export default function Dashboard() {
 				/>
 			</div>
 
-			<div className="adbot-dashboard__actions">
-				{ ! connected && (
-					<button className="button button-primary" onClick={ () => navigate( '/connect' ) }>
-						Connect Google Account
-					</button>
-				) }
-				{ connected && ! snippetActive && (
-					<button className="button button-primary" onClick={ () => navigate( '/connect' ) }>
-						Install GTM Snippet
-					</button>
-				) }
-				{ connected && snippetActive && (
-					<button className="button button-primary" onClick={ () => navigate( '/audit' ) }>
-						Run Audit
-					</button>
-				) }
-			</div>
+			{ connected && (
+				<div className="adbot-dashboard__actions">
+					{ ! snippetActive ? (
+						<button
+							type="button"
+							className="button button-primary"
+							onClick={ () => navigate( '/connect' ) }
+						>
+							{ __( 'Install GTM Snippet', 'adbot' ) }
+						</button>
+					) : (
+						<button
+							type="button"
+							className="button button-primary"
+							onClick={ () => navigate( '/audit' ) }
+						>
+							{ __( 'Run Audit', 'adbot' ) }
+						</button>
+					) }
+				</div>
+			) }
 		</div>
 	);
 }

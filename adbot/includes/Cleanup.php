@@ -2,6 +2,10 @@
 
 namespace Adbot;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Cleanup helpers for uninstall/deactivation.
  */
@@ -15,6 +19,7 @@ class Cleanup {
 		global $wpdb;
 
 		$like = $wpdb->esc_like( '_transient_' . $prefix ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$rows = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",
@@ -33,6 +38,7 @@ class Cleanup {
 		}
 
 		$like_timeout = $wpdb->esc_like( '_transient_timeout_' . $prefix ) . '%';
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$timeout_rows = $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE %s",

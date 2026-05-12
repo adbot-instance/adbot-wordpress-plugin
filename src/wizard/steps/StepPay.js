@@ -84,7 +84,7 @@ export default function StepPay() {
 			<div className="adbot-step__eyebrow">Step 5 of 6</div>
 			<h1 className="adbot-step__title">Unlock automated fixes</h1>
 			<p className="adbot-step__lede">
-				One-time payment. Adbot writes every fix to your GTM workspace and publishes a new
+				One-time payment. We write every fix to your GTM workspace and publish a new
 				container version. You can always revert via GTM's version history.
 			</p>
 

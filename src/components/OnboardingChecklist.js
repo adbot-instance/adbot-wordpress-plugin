@@ -19,7 +19,7 @@ export default function OnboardingChecklist() {
 	return (
 		<div className="adbot-checklist">
 			<div className="adbot-checklist__header">
-				<strong>Finish your Adbot setup</strong>
+				<strong>Finish your tracking setup</strong>
 				<button type="button" className="adbot-btn adbot-btn--primary" onClick={ resume }>
 					Resume setup
 				</button>

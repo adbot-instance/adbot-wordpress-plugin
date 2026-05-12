@@ -30,5 +30,8 @@ class Activator {
 
 		// Mark the installed version.
 		update_option( 'adbot_version', ADBOT_VERSION );
+
+		// Send the next admin request to the Adbot screen so the welcome wizard can load first.
+		set_transient( 'adbot_activation_redirect', '1', 120 );
 	}
 }

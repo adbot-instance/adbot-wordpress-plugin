@@ -1,7 +1,7 @@
 const SEVERITY_COLORS = {
 	critical: '#d63638',
 	warning: '#dba617',
-	info: '#2271b1',
+	info: '#ff6900',
 };
 
 const SEVERITY_LABELS = {

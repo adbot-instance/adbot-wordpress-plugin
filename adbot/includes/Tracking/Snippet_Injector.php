@@ -2,6 +2,10 @@
 
 namespace Adbot\Tracking;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class Snippet_Injector {
 
 	private bool $body_snippet_injected = false;
@@ -23,14 +27,12 @@ class Snippet_Injector {
 			return;
 		}
 
-		$container_id = esc_js( $container_id );
-
 		echo "<!-- Google Tag Manager (Adbot) -->\n";
 		echo '<script id="adbot-gtm-loader" data-adbot="gtm">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':' . "\n";
 		echo "new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n";
 		echo "j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n";
 		echo "'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n";
-		echo "})(window,document,'script','dataLayer','" . $container_id . "');</script>\n";
+		echo "})(window,document,'script','dataLayer','" . esc_js( $container_id ) . "');</script>\n";
 		echo "<!-- End Google Tag Manager (Adbot) -->\n";
 	}
 
@@ -44,10 +46,8 @@ class Snippet_Injector {
 			return;
 		}
 
-		$container_id = esc_attr( $container_id );
-
 		echo "<!-- Google Tag Manager (noscript) (Adbot) -->\n";
-		echo '<noscript data-adbot="gtm"><iframe id="adbot-gtm-noscript" src="https://www.googletagmanager.com/ns.html?id=' . $container_id . '"' . "\n";
+		echo '<noscript data-adbot="gtm"><iframe id="adbot-gtm-noscript" src="https://www.googletagmanager.com/ns.html?id=' . esc_attr( $container_id ) . '"' . "\n";
 		echo 'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>' . "\n";
 		echo "<!-- End Google Tag Manager (noscript) (Adbot) -->\n";
 

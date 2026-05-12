@@ -2,6 +2,10 @@
 
 namespace Adbot;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 use Adbot\Admin\Admin;
 use Adbot\API\Auth_Controller;
 use Adbot\API\Status_Controller;
