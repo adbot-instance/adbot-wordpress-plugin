@@ -32,7 +32,7 @@ class Consent {
 		throw new Consent_Required_Exception(
 			sprintf(
 				/* translators: %s: third-party service name. */
-				esc_html__( 'Adbot consent required before contacting %s.', 'adbot' ),
+				esc_html__( 'Adbot consent required before contacting %s.', 'adbot-tracking-platform' ),
 				esc_html( $service_label )
 			)
 		);

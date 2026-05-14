@@ -34,8 +34,8 @@ class Admin {
 
 	public function register_menu(): void {
 		add_menu_page(
-			__( 'Adbot', 'adbot' ),
-			__( 'Adbot', 'adbot' ),
+			__( 'Adbot', 'adbot-tracking-platform' ),
+			__( 'Adbot', 'adbot-tracking-platform' ),
 			'manage_options',
 			'adbot',
 			[ $this, 'render_page' ],
@@ -83,7 +83,7 @@ class Admin {
 			true
 		);
 
-		wp_set_script_translations( 'adbot-admin', 'adbot', ADBOT_PLUGIN_DIR . 'languages' );
+		wp_set_script_translations( 'adbot-admin', 'adbot-tracking-platform', ADBOT_PLUGIN_DIR . 'languages' );
 
 		wp_enqueue_style(
 			'adbot-admin',
@@ -103,12 +103,12 @@ class Admin {
 			'siteUrl'   => get_site_url(),
 			'siteName'  => get_bloginfo( 'name' ),
 			'brand'     => [
-				'name'        => __( 'Tracking', 'adbot' ),
-				'tagline'     => __( 'Automated Google Analytics and Tag Manager setup', 'adbot' ),
+				'name'        => __( 'Tracking', 'adbot-tracking-platform' ),
+				'tagline'     => __( 'Automated Google Analytics and Tag Manager setup', 'adbot-tracking-platform' ),
 				/* translators: Logo image for screen readers. */
-				'logoAlt'     => __( 'Tracking setup logo', 'adbot' ),
+				'logoAlt'     => __( 'Tracking setup logo', 'adbot-tracking-platform' ),
 				'logoUrl'     => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),
-				'setupTitle'  => __( 'Tracking setup', 'adbot' ),
+				'setupTitle'  => __( 'Tracking setup', 'adbot-tracking-platform' ),
 			],
 			'images'    => [
 				'adbot' => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),

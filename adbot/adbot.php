@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name: Adbot
+ * Plugin Name: Adbot Tracking Platform
  * Description: Connect your Google marketing stack (GTM, GA4, Ads, Merchant Center, Business Profile) in one click. Automatically injects your GTM container and audits your tracking setup.
  * Version:     1.0.0
  * Author:      Adbot
  * Author URI:  https://adbot.co.za
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: adbot
+ * Text Domain: adbot-tracking-platform
  * Domain Path: /languages
  * Requires at least: 6.0
  * Requires PHP: 8.0

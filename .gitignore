@@ -30,3 +30,4 @@ package-lock.json
 
 # development
 .ADBOT_BACKEND
+/dev/feedback/

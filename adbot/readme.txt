@@ -1,5 +1,5 @@
-=== Adbot ===
-Contributors: keegalix
+=== Adbot Tracking Platform ===
+Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
@@ -9,6 +9,8 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Connect your Google marketing stack in one click. Inject a Google Tag Manager container and audit your tracking setup.
+
+Source code and build tools: https://github.com/adbot-instance/adbot-wordpress-plugin
 
 == Description ==
 
@@ -31,7 +33,7 @@ The plugin communicates **only** with the Adbot Tracking backend service (`https
 * **Adbot Tracking backend** (`https://adbot-tracking-platform.vercel.app/api/wp`) — the proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
 * **Google OAuth and Google APIs** (called server-side by the Adbot backend) — authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Ads, Search Console). Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
 * **Supabase** (called server-side by the Adbot backend) — stores the account linkage and encrypted OAuth tokens. Terms: https://supabase.com/terms · Privacy: https://supabase.com/privacy
-* **Paystack** (called server-side by the Adbot backend) — processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/terms · Privacy: https://paystack.com/privacy
+* **Paystack** (called server-side by the Adbot backend) — processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/za/terms · Privacy: https://paystack.com/za/terms?q=/privacy
 
 Data sent from your WordPress site to the Adbot backend: site URL, site name, WordPress version, admin email (when the site first registers with the backend), and — per feature — the Google container you choose, the audit parameters you run, and the payment reference you verify. The WordPress site never sees, stores, or transmits your Google OAuth tokens directly; those live on the Adbot backend and are encrypted at rest.
 

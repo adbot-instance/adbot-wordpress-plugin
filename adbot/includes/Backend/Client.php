@@ -66,7 +66,7 @@ class Client {
 		if ( $require_auth ) {
 			$token = Token_Store::get_site_token();
 			if ( '' === $token ) {
-				throw new Backend_Exception( 'not_registered', __( 'Adbot has not finished registering this site with the Adbot service. Please reload the page in a moment.', 'adbot' ), 503 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
+				throw new Backend_Exception( 'not_registered', __( 'Adbot has not finished registering this site with the Adbot service. Please reload the page in a moment.', 'adbot-tracking-platform' ), 503 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 			}
 			$headers['Authorization'] = 'Bearer ' . $token;
 		}
@@ -97,7 +97,7 @@ class Client {
 		$code    = is_array( $json ) && isset( $json['code'] ) ? (string) $json['code'] : 'backend_error';
 		$message = is_array( $json ) && isset( $json['message'] )
 			? (string) $json['message']
-			: sprintf( /* translators: %d: HTTP status code */ __( 'Adbot backend returned HTTP %d.', 'adbot' ), $status );
+			: sprintf( /* translators: %d: HTTP status code */ __( 'Adbot backend returned HTTP %d.', 'adbot-tracking-platform' ), $status );
 
 		throw new Backend_Exception( $code, $message, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped
 	}
