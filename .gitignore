@@ -8,12 +8,20 @@
 # Build output (admin bundle is emitted under the WordPress plugin tree)
 /adbot/build/
 
-# Environment
+# Environment — never commit real secrets. Use .env.example as the template.
 .env
-.env.local
+.env.*
+!.env.example
+
+# Claude Code / local agent state
+.claude/
+
+# Release artifacts
+*.zip
 
 # OS files
 .DS_Store
+._*
 Thumbs.db
 
 # IDE
@@ -28,6 +36,16 @@ composer.lock
 # npm
 package-lock.json
 
-# development
+# Logs and editor scratch
+*.log
+*.bak
+*.tmp
+.tmp/
+
+# WP-env / local DB dumps
+.wp-env-override.json
+*.sql
+
+# Development
 .ADBOT_BACKEND
 /dev/feedback/
