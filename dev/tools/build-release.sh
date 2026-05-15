@@ -5,6 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PLUGIN_DIR="${ROOT}/adbot"
 SLUG="adbot"
+ZIP_NAME="adbot-tracking-platform"
 DIST_DIR="${ROOT}/dist"
 STAGE_DIR="${DIST_DIR}/${SLUG}"
 EXCLUDES="${ROOT}/.plugin-build-excludes"
@@ -29,6 +30,6 @@ rsync -a \
   "${STAGE_DIR}/"
 
 echo "Creating zip..."
-(cd "${DIST_DIR}" && zip -r "${SLUG}.zip" "${SLUG}" >/dev/null)
+(cd "${DIST_DIR}" && zip -r "${ZIP_NAME}.zip" "${SLUG}" >/dev/null)
 
-echo "Done: ${DIST_DIR}/${SLUG}.zip"
+echo "Done: ${DIST_DIR}/${ZIP_NAME}.zip"
