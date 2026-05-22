@@ -1,6 +1,9 @@
 # Build artifacts
 /dist/
 
+# WordPress.org SVN working copy (publish target, not part of git history)
+/adbot-tracking-platform/
+
 # Dependencies
 /node_modules/
 /adbot/vendor/
