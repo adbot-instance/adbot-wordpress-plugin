@@ -1,6 +1,14 @@
 # Adbot Tracking Platform — WordPress plugin
 
+[![Plugin](https://img.shields.io/badge/wordpress.org-adbot--tracking--platform-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://wordpress.org/plugins/adbot-tracking-platform/)
+[![Requires WP](https://img.shields.io/badge/WordPress-6.0%2B-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
+[![Tested up to](https://img.shields.io/badge/tested%20up%20to-6.9.4-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
+[![Requires PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4.svg?logo=php&logoColor=white)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+[![Author](https://img.shields.io/badge/author-keegankelly-21759B.svg?logo=wordpress&logoColor=white)](https://profiles.wordpress.org/keegankelly/)
+[![SVN](https://img.shields.io/badge/SVN-plugins.svn.wordpress.org-orange.svg?logo=subversion&logoColor=white)](https://plugins.svn.wordpress.org/adbot-tracking-platform/)
+[![Tags](https://img.shields.io/badge/tags-analytics%20%C2%B7%20audit%20%C2%B7%20marketing%20%C2%B7%20tag--manager%20%C2%B7%20tracking-lightgrey.svg)](https://wordpress.org/plugins/adbot-tracking-platform/)
 
 A WordPress admin plugin that connects your Google marketing stack — **Google Tag Manager, Google Analytics 4, Google Ads, and Google Search Console** — through a hosted backend. It can inject a GTM container snippet, run tracking audits, and (with entitlement) apply audit fixes via the Google Tag Manager API.
 
