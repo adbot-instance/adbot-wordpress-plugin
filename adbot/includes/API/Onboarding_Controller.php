@@ -155,19 +155,39 @@ class Onboarding_Controller extends REST_Controller {
 	/**
 	 * Same notion of “Google connected” as Status_Controller / Dashboard (backend auth status).
 	 */
+	private const CONNECTED_CACHE = 'adbot_google_connected_cache';
+	private const CONNECTED_LAST  = 'adbot_google_connected_last';
+
 	private function is_google_connected(): bool {
 		if ( ! Consent::has_consent() ) {
 			return false;
 		}
 		if ( '' === Token_Store::get_site_token() ) {
+			delete_transient( self::CONNECTED_CACHE );
+			update_option( self::CONNECTED_LAST, false, false );
 			return false;
 		}
-		try {
-			$result = ( new Client() )->get( '/auth/status' );
 
-			return (bool) ( $result['connected'] ?? false );
+		// Short-lived cache to avoid a backend round-trip on every onboarding
+		// read (resolve_state runs on each GET/POST /onboarding).
+		$cached = get_transient( self::CONNECTED_CACHE );
+		if ( '1' === $cached || '0' === $cached ) {
+			return '1' === $cached;
+		}
+
+		try {
+			$result    = ( new Client() )->get( '/auth/status' );
+			$connected = (bool) ( $result['connected'] ?? false );
+			set_transient( self::CONNECTED_CACHE, $connected ? '1' : '0', 30 );
+			update_option( self::CONNECTED_LAST, $connected, false );
+			return $connected;
 		} catch ( Backend_Exception $e ) {
-			return false;
+			// A slow or failed /auth/status call (e.g. a Vercel cold start while
+			// the backend refreshes the Google token) must NOT flap the user back
+			// to "disconnected". Doing so bounced the wizard step backward and
+			// looped against the connect screen, which re-advanced on every tick.
+			// Trust the last known result instead.
+			return (bool) get_option( self::CONNECTED_LAST, false );
 		}
 	}
 

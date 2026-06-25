@@ -66,7 +66,7 @@ class Snippet_Controller extends REST_Controller {
 				'container_path'     => $container_path,
 				'ga4_measurement_id' => $ga4_measurement,
 				'site_url'           => get_site_url(),
-			] );
+			], Client::SLOW_TIMEOUT );
 		} catch ( Consent_Required_Exception | Backend_Exception $e ) {
 			$this->log_exception( 'snippet_install_record', $e );
 		}

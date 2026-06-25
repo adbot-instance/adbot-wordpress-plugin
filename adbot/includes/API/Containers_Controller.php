@@ -36,7 +36,7 @@ class Containers_Controller extends REST_Controller {
 		}
 
 		try {
-			$result = ( new Client() )->get( '/gtm/containers' );
+			$result = ( new Client() )->get( '/gtm/containers', [], Client::SLOW_TIMEOUT );
 			set_transient( $cache_key, $result, 5 * MINUTE_IN_SECONDS );
 			return new WP_REST_Response( $result, 200 );
 		} catch ( Consent_Required_Exception $e ) {

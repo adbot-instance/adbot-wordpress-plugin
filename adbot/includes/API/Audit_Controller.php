@@ -51,7 +51,7 @@ class Audit_Controller extends REST_Controller {
 		try {
 			$result = ( new Client() )->post( '/audit/run', [
 				'container_path' => (string) $request->get_param( 'containerPath' ),
-			] );
+			], Client::SLOW_TIMEOUT );
 			return new WP_REST_Response( $result, 200 );
 		} catch ( Consent_Required_Exception $e ) {
 			return $this->error_response( $e->getMessage(), 403 );

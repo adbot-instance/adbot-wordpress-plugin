@@ -84,6 +84,11 @@ class Auth_Controller extends REST_Controller {
 		delete_option( 'adbot_snippet_container_id' );
 		delete_option( 'adbot_snippet_container_path' );
 		delete_option( 'adbot_onboarding' );
+		// Clear the cached "Google connected" flags so a disconnect reflects
+		// immediately (see Onboarding_Controller::is_google_connected()).
+		delete_transient( 'adbot_google_connected_cache' );
+		delete_option( 'adbot_google_connected_last' );
+		delete_transient( 'adbot_containers' );
 
 		return new WP_REST_Response( [ 'disconnected' => true ], 200 );
 	}

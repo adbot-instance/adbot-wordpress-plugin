@@ -8,6 +8,7 @@ export default function StepConnect() {
 	const { advance, refresh } = useOnboarding();
 	const [ connecting, setConnecting ] = useState( false );
 	const [ error, setError ] = useState( null );
+	const [ connected, setConnected ] = useState( false );
 	const [ account, setAccount ] = useState( null );
 	const [ advanceFailed, setAdvanceFailed ] = useState( false );
 	const popupRef = useRef( null );
@@ -24,8 +25,13 @@ export default function StepConnect() {
 					if ( cancelled ) {
 						return;
 					}
+					// Drive advancement off `connected` alone. The backend can
+					// return `connected: true` with `account: null` (the account
+					// lookup needs Google userinfo scopes the audit flow doesn't
+					// request), so gating on `account` would hang the wizard here.
 					if ( data?.connected ) {
-						setAccount( data.account );
+						setConnected( true );
+						setAccount( data.account || null );
 					}
 				} )
 				.catch( () => {} );
@@ -69,7 +75,7 @@ export default function StepConnect() {
 	// Once connected: close any lingering popup and continue automatically into
 	// the property / GTM-snippet step. Guarded so it only fires once.
 	useEffect( () => {
-		if ( ! account || advancedRef.current ) {
+		if ( ! connected || advancedRef.current ) {
 			return;
 		}
 		advancedRef.current = true;
@@ -86,7 +92,7 @@ export default function StepConnect() {
 				setAdvanceFailed( true );
 			}
 		} )();
-	}, [ account, advance, refresh ] );
+	}, [ connected, advance, refresh ] );
 
 	const handleConnect = async () => {
 		setConnecting( true );
@@ -149,7 +155,7 @@ export default function StepConnect() {
 
 			{ error && <p className="adbot-error">{ error }</p> }
 
-			{ ! account && (
+			{ ! connected && (
 				<div className="adbot-step__actions">
 					<GoogleSignInButton
 						variant="continue"
@@ -160,16 +166,17 @@ export default function StepConnect() {
 				</div>
 			) }
 
-			{ account && (
+			{ connected && (
 				<div className="adbot-account-card">
-					{ account.picture && (
+					{ account?.picture && (
 						<img src={ account.picture } alt="" />
 					) }
 					<div>
 						<strong>
-							{ account.name || __( 'Google account', 'adbot' ) }
+							{ account?.name ||
+								__( 'Google account connected', 'adbot' ) }
 						</strong>
-						<span>{ account.email }</span>
+						{ account?.email && <span>{ account.email }</span> }
 					</div>
 					{ advanceFailed ? (
 						<button

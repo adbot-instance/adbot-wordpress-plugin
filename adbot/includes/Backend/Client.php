@@ -29,12 +29,20 @@ class Client {
 		return untrailingslashit( '' !== $override ? $override : self::DEFAULT_BASE );
 	}
 
-	public function get( string $path, array $query = [] ): array {
-		return $this->request( 'GET', $path, $query, null );
+	/**
+	 * Default request timeout (seconds). GTM/Analytics-heavy backend endpoints
+	 * are deliberately rate-limited server-side to respect Google API quotas, so
+	 * those calls pass a larger SLOW_TIMEOUT below.
+	 */
+	public const DEFAULT_TIMEOUT = 20;
+	public const SLOW_TIMEOUT    = 45;
+
+	public function get( string $path, array $query = [], int $timeout = self::DEFAULT_TIMEOUT ): array {
+		return $this->request( 'GET', $path, $query, null, true, $timeout );
 	}
 
-	public function post( string $path, array $body = [] ): array {
-		return $this->request( 'POST', $path, [], $body );
+	public function post( string $path, array $body = [], int $timeout = self::DEFAULT_TIMEOUT ): array {
+		return $this->request( 'POST', $path, [], $body, true, $timeout );
 	}
 
 	public function delete( string $path ): array {
@@ -49,7 +57,7 @@ class Client {
 		return $this->request( 'POST', $path, [], $body, false );
 	}
 
-	private function request( string $method, string $path, array $query, ?array $body, bool $require_auth = true ): array {
+	private function request( string $method, string $path, array $query, ?array $body, bool $require_auth = true, int $timeout = self::DEFAULT_TIMEOUT ): array {
 		Consent::require_consent( 'the Adbot backend' );
 
 		$url = self::base_url() . '/' . ltrim( $path, '/' );
@@ -74,7 +82,7 @@ class Client {
 		$args = [
 			'method'  => $method,
 			'headers' => $headers,
-			'timeout' => 20,
+			'timeout' => $timeout,
 		];
 		if ( null !== $body ) {
 			$args['body'] = wp_json_encode( $body );

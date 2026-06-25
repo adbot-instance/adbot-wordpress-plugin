@@ -97,7 +97,7 @@ class Setup_Controller extends REST_Controller {
 
 	private function proxy( string $log_ctx, string $path, array $body ): WP_REST_Response {
 		try {
-			$result = ( new Client() )->post( $path, $body );
+			$result = ( new Client() )->post( $path, $body, Client::SLOW_TIMEOUT );
 			return new WP_REST_Response( $result, 200 );
 		} catch ( Consent_Required_Exception $e ) {
 			return $this->error_response( $e->getMessage(), 403 );
