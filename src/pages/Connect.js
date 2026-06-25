@@ -61,7 +61,11 @@ export default function Connect() {
 		setInstalling( true );
 		setError( '' );
 		try {
-			await installSnippet( container.containerId, container.path );
+			// The snippet uses the public GTM-XXXX id, not the numeric containerId.
+			await installSnippet(
+				container.publicId || container.containerId,
+				container.path
+			);
 			setSelectedContainer( container );
 			loadStatus();
 		} catch ( err ) {

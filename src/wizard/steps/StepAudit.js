@@ -40,7 +40,8 @@ export default function StepAudit() {
 					const accounts = await getContainers();
 					accounts.forEach( ( a ) =>
 						a.containers.forEach( ( c ) => {
-							if ( c.containerId === containerId ) path = c.path;
+							// containerId here is the stored GTM-XXXX public id.
+							if ( c.publicId === containerId ) path = c.path;
 						} )
 					);
 					if ( path ) {

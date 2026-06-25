@@ -32,6 +32,7 @@ export default function StepProperty() {
 	const [ suggestion, setSuggestion ] = useState( null );
 	const [ showAll, setShowAll ] = useState( false );
 	const [ installing, setInstalling ] = useState( false );
+	const [ installingPath, setInstallingPath ] = useState( null );
 
 	const siteUrl = window.adbotAdmin?.siteUrl || '';
 
@@ -50,13 +51,19 @@ export default function StepProperty() {
 
 	const confirm = async ( container ) => {
 		setInstalling( true );
+		setInstallingPath( container.path );
 		setError( null );
 		try {
-			await installSnippet( container.containerId, container.path );
+			// The snippet uses the public GTM-XXXX id, not the numeric containerId.
+			await installSnippet(
+				container.publicId || container.containerId,
+				container.path
+			);
 			await advance( 'audit' );
 		} catch ( err ) {
 			setError( err.message || 'Failed to install snippet' );
 			setInstalling( false );
+			setInstallingPath( null );
 		}
 	};
 
@@ -131,7 +138,11 @@ export default function StepProperty() {
 
 			{ showAll && (
 				<>
-					<ContainerSelector onSelect={ confirm } />
+					<ContainerSelector
+						onSelect={ confirm }
+						selectedPath={ installingPath }
+						busy={ installing }
+					/>
 					<div className="adbot-step__actions">
 						<button
 							type="button"

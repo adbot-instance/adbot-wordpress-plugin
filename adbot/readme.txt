@@ -3,7 +3,7 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.6
+Stable tag: 1.0.8
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,12 @@ Define either in `wp-config.php` (both optional):
 
 == Changelog ==
 
+= 1.0.8 =
+* Fix: selecting a container then running the audit failed with "No GTM container selected." The plugin now sends the container's public GTM-XXXX id (which the snippet and audit require) instead of the numeric container id, so the audit runs correctly.
+
+= 1.0.7 =
+* Improved: redesigned the Tag Manager container picker on the "Find property" step — accounts are grouped with counts, containers are shown as clear selectable cards with hover/focus/selected states, and a search box lets you filter by name, domain, or ID when you have many containers.
+
 = 1.0.6 =
 * Fix: the "Find property" step could error with "e.forEach is not a function" once containers loaded. The plugin now adapts the Google Tag Manager container list into the shape the setup UI expects, so your accounts and containers display correctly.
 
@@ -109,6 +115,12 @@ Define either in `wp-config.php` (both optional):
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.8 =
+Fixes "No GTM container selected" on the audit step after choosing a container.
+
+= 1.0.7 =
+Redesigned, searchable Google Tag Manager container picker on the Find property step.
 
 = 1.0.6 =
 Fixes a "forEach is not a function" error on the Find property step when loading GTM containers.
