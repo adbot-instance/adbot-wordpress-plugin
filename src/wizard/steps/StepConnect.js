@@ -1,4 +1,4 @@
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { useOnboarding } from '../OnboardingProvider';
 import { getAuthStatus, initiateOAuth } from '../../api/auth';
@@ -9,43 +9,122 @@ export default function StepConnect() {
 	const [ connecting, setConnecting ] = useState( false );
 	const [ error, setError ] = useState( null );
 	const [ account, setAccount ] = useState( null );
+	const [ advanceFailed, setAdvanceFailed ] = useState( false );
+	const popupRef = useRef( null );
+	const advancedRef = useRef( false );
 
+	// Watch for the Google connection becoming live: poll the backend, react to
+	// window focus (popup-blocked / full-page fallback), and react to the popup
+	// posting back when it returns from the OAuth round-trip.
 	useEffect( () => {
+		let cancelled = false;
 		const poll = () => {
-			getAuthStatus().then( ( data ) => {
-				if ( data?.connected ) {
-					setAccount( data.account );
-				}
-			} );
+			getAuthStatus()
+				.then( ( data ) => {
+					if ( cancelled ) {
+						return;
+					}
+					if ( data?.connected ) {
+						setAccount( data.account );
+					}
+				} )
+				.catch( () => {} );
 		};
 		poll();
+
 		const handleFocus = () => setTimeout( poll, 800 );
+		const handleMessage = ( event ) => {
+			if ( event.origin !== window.location.origin ) {
+				return;
+			}
+			const data = event.data || {};
+			if ( data.type !== 'adbot:oauth-result' ) {
+				return;
+			}
+			if ( data.error ) {
+				setConnecting( false );
+				setError(
+					__(
+						'Google sign-in did not complete. Please try connecting again.',
+						'adbot'
+					)
+				);
+				return;
+			}
+			// Don't trust the popup's word — confirm the connection server-side.
+			poll();
+		};
+
 		window.addEventListener( 'focus', handleFocus );
+		window.addEventListener( 'message', handleMessage );
 		const timer = setInterval( poll, 2500 );
 		return () => {
+			cancelled = true;
 			window.removeEventListener( 'focus', handleFocus );
+			window.removeEventListener( 'message', handleMessage );
 			clearInterval( timer );
 		};
 	}, [] );
+
+	// Once connected: close any lingering popup and continue automatically into
+	// the property / GTM-snippet step. Guarded so it only fires once.
+	useEffect( () => {
+		if ( ! account || advancedRef.current ) {
+			return;
+		}
+		advancedRef.current = true;
+		if ( popupRef.current && ! popupRef.current.closed ) {
+			popupRef.current.close();
+		}
+		( async () => {
+			try {
+				await refresh();
+				await advance( 'property' );
+			} catch {
+				// Stay on this step and offer a manual continue instead of hanging.
+				advancedRef.current = false;
+				setAdvanceFailed( true );
+			}
+		} )();
+	}, [ account, advance, refresh ] );
 
 	const handleConnect = async () => {
 		setConnecting( true );
 		setError( null );
 		try {
 			const { url } = await initiateOAuth();
-			const popup = window.open( url, 'adbot-oauth', 'width=600,height=700' );
+			const popup = window.open(
+				url,
+				'adbot-oauth',
+				'width=600,height=700'
+			);
+			popupRef.current = popup;
 			if ( ! popup ) {
+				// Popup blocked: fall back to a full-page redirect. We return to
+				// this page with the OAuth result params and the poll picks it up.
 				window.location.href = url;
 			}
 		} catch ( err ) {
-			setError( err.message || 'Failed to start OAuth' );
+			setError(
+				err.message || __( 'Failed to start Google sign-in', 'adbot' )
+			);
+			setConnecting( false );
 		}
-		setConnecting( false );
 	};
 
 	const handleContinue = async () => {
-		await refresh();
-		await advance( 'property' );
+		if ( advancedRef.current ) {
+			return;
+		}
+		advancedRef.current = true;
+		setAdvanceFailed( false );
+		try {
+			await refresh();
+			await advance( 'property' );
+		} catch {
+			advancedRef.current = false;
+			setAdvanceFailed( true );
+		}
 	};
 
 	return (
@@ -58,7 +137,9 @@ export default function StepConnect() {
 					6
 				) }
 			</div>
-			<h1 className="adbot-step__title">{ __( 'Connect your Google account', 'adbot' ) }</h1>
+			<h1 className="adbot-step__title">
+				{ __( 'Connect your Google account', 'adbot' ) }
+			</h1>
 			<p className="adbot-step__lede">
 				{ __(
 					'Read and write access to Google Tag Manager, Analytics, Ads, Merchant Center, and Business Profile is required so we can audit and fix your tracking.',
@@ -81,18 +162,28 @@ export default function StepConnect() {
 
 			{ account && (
 				<div className="adbot-account-card">
-					{ account.picture && <img src={ account.picture } alt="" /> }
+					{ account.picture && (
+						<img src={ account.picture } alt="" />
+					) }
 					<div>
-						<strong>{ account.name || __( 'Google account', 'adbot' ) }</strong>
+						<strong>
+							{ account.name || __( 'Google account', 'adbot' ) }
+						</strong>
 						<span>{ account.email }</span>
 					</div>
-					<button
-						type="button"
-						className="adbot-btn adbot-btn--primary"
-						onClick={ handleContinue }
-					>
-						{ __( 'Continue', 'adbot' ) }
-					</button>
+					{ advanceFailed ? (
+						<button
+							type="button"
+							className="adbot-btn adbot-btn--primary"
+							onClick={ handleContinue }
+						>
+							{ __( 'Continue', 'adbot' ) }
+						</button>
+					) : (
+						<span className="adbot-account-card__status">
+							{ __( 'Connected — continuing…', 'adbot' ) }
+						</span>
+					) }
 				</div>
 			) }
 		</div>

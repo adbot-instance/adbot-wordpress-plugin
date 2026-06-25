@@ -47,7 +47,16 @@ class Auth_Controller extends REST_Controller {
 
 		try {
 			// Ensure we have a site_token before asking the backend for an auth URL.
-			( new Site_Registration() )->maybe_register();
+			// An explicit Connect click must force a real attempt: do NOT use the
+			// debounced maybe_register() here. If a prior background attempt failed,
+			// its 60s debounce would make this click silently no-op and the user
+			// would see "not finished registering" again with no retry. Calling
+			// register_now() directly also lets the real failure reason (network
+			// timeout, verification_failed, backend 5xx) surface to the UI below
+			// instead of being swallowed and masked by a generic not_registered.
+			if ( '' === Token_Store::get_site_token() ) {
+				( new Site_Registration() )->register_now();
+			}
 
 			$client = new Client();
 			$result = $client->post( '/auth/google/start', [

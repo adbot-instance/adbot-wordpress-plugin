@@ -3,7 +3,7 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.0.2
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,10 +86,23 @@ Define either in `wp-config.php` (both optional):
 
 == Changelog ==
 
+= 1.0.2 =
+* Fix: the Google sign-in popup now closes automatically when authorization completes and returns you to the setup wizard, which continues to the next step.
+* Fix: clicking "Continue with Google" now forces site registration immediately and shows the real reason if it fails, instead of a generic "still registering" message.
+
+= 1.0.1 =
+* Maintenance release.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.2 =
+Fixes Google sign-in: the popup now closes and the wizard continues automatically, and connection errors are reported clearly.
+
+= 1.0.1 =
+Maintenance release.
 
 = 1.0.0 =
 Initial release.

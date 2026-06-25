@@ -39,6 +39,10 @@ Called from WordPress when registering the site. No auth header.
 
 The backend generates `challenge`, stores `(site_id, nonce, challenge, pending)`, and returns the verification URL that points back at the site. The plugin does NOT call this URL directly — the backend does, next step.
 
+> **⚠ Code drift (verified 2026-06-25 against `app/api/wp/sites/register/route.ts`):** the live backend does **not** implement a separate `challenge` or return a `verification_url`. The 201 response body is just `{ "site_id": "…" }`. The backend stores the plugin's `nonce` (as `verifyNonce`) and later uses that **same nonce as the `challenge` query param** when it calls the site back. So in practice **`challenge == nonce`** — the plugin's transient (`adbot_site_challenge`) holds the nonce, and `handle_verify_request()` compares the inbound `?challenge=` against it. Treat the `challenge`/`verification_url` fields above as aspirational, not current.
+>
+> Also note: `/sites/register` upserts by `site_url` and **sets `siteTokenHash = null` on every call**, with no auth. An unauthenticated caller who knows a registered site's URL can therefore revoke its live token; the plugin only re-registers when its *local* token is empty (it never clears a backend-rejected token), so recovery is not automatic. Tracked as a hardening item.
+
 ### `POST /sites/verify`
 
 Called by the plugin immediately after register. No auth header.
@@ -55,6 +59,8 @@ Backend action:
 1. Performs `GET <verification_url>` server-side.
 2. The plugin's public `/wp-json/adbot/v1/verify?challenge=…` endpoint returns `{ "nonce": "<same nonce>" }` (JSON) only if the challenge matches what was stored in a transient.
 3. If the returned nonce matches, backend marks the site `verified` and mints a `site_token`.
+
+> **⚠ Code drift (verified 2026-06-25 against `app/api/wp/sites/verify/route.ts`):** the backend GETs `<site_url>/wp-json/adbot/v1/verify?challenge=<nonce>` — i.e. the **nonce is passed as the `challenge`** (`url.searchParams.set("challenge", nonce)`). There is no independent challenge value. The challenge transient is short-lived (the plugin sets `verifyNonceExpiresAt = now + 10 min`); after that the backend returns `410 challenge_expired` and the site must re-register.
 
 **Response 200:**
 ```json
@@ -84,6 +90,16 @@ Plugin opens `auth_url` in a popup or top-level window.
 ### `GET /auth/google/callback`
 
 Backend handles the full Google redirect. Exchanges code → tokens → stores encrypted tokens keyed by `site_id`. Then issues an HTTP 302 to `return_url` with `?connected=1` appended (or `?error=<code>` on failure).
+
+> **⚠ Code drift (verified 2026-06-25 against `app/api/wp/oauth/google/return/route.ts`) — this caused a live `redirect_uri_mismatch` on a client site:**
+>
+> - The real callback route is **`GET /api/wp/oauth/google/return`**, *not* `/auth/google/callback`. This exact URL is what `getWpGoogleAuthUrl()` sends to Google as `redirect_uri` (from the `WP_GOOGLE_REDIRECT_URI` env), so it **must be registered verbatim** in the Google Cloud OAuth client's *Authorized redirect URIs*. For the default backend host that is:
+>   ```
+>   https://adbot-tracking-platform.vercel.app/api/wp/oauth/google/return
+>   ```
+>   (add the `https://tracking.adbot.co.za/...` variant before migrating hosts). If it isn't registered, Google returns `Error 400: redirect_uri_mismatch` before any token is issued.
+> - On return the backend appends **`?adbot_oauth=success`** (or **`?adbot_oauth=error&reason=<state_expired|missing_code|no_refresh_token|exchange_failed|…>`**) to the `return_url` — *not* `?connected=1` / `?error=`. This is cosmetic for the plugin, which detects connection by re-polling `GET /auth/status` on window focus rather than reading these params.
+> - A `refresh_token` is required: Google must return one (the auth URL uses `access_type=offline` + `prompt=consent`), or the backend fails with `reason=no_refresh_token`.
 
 ### `GET /auth/status`
 
