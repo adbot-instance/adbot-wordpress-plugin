@@ -94,10 +94,16 @@ class Auth_Controller extends REST_Controller {
 	}
 
 	public function get_status( WP_REST_Request $request ): WP_REST_Response {
+		$snippet_container_id = (string) get_option( 'adbot_snippet_container_id', '' );
 		$snippet = [
-			'snippetActive'        => (bool) get_option( 'adbot_snippet_active' ),
-			'snippetContainerId'   => (string) get_option( 'adbot_snippet_container_id', '' ),
-			'snippetContainerPath' => (string) get_option( 'adbot_snippet_container_path', '' ),
+			'snippetActive'           => (bool) get_option( 'adbot_snippet_active' ),
+			'snippetExternalDetected' => (bool) get_option( 'adbot_snippet_external_detected' ),
+			'snippetContainerId'      => $snippet_container_id,
+			'snippetContainerPath'    => (string) get_option( 'adbot_snippet_container_path', '' ),
+			// The exact code Adbot injects for this container, so the admin UI can
+			// show the user precisely what is (or would be) on their site.
+			'snippetHead'             => '' !== $snippet_container_id ? \Adbot\Tracking\Snippet_Injector::head_snippet( $snippet_container_id ) : '',
+			'snippetBody'             => '' !== $snippet_container_id ? \Adbot\Tracking\Snippet_Injector::body_snippet( $snippet_container_id ) : '',
 		];
 
 		if ( '' === Token_Store::get_site_token() ) {

@@ -25,10 +25,13 @@ export default function StepApply() {
 				setAudit( a );
 
 				setPhase( 0 );
-				const plan = await generatePlan( a.gaps, a.measurementId );
+				const planRes = await generatePlan( a.gaps, a.measurementId );
+				// The backend returns { plan: { measurementId, operations } }; pass
+				// the whole SetupPlan object to execute, not plan.operations.
+				const plan = planRes?.plan || planRes;
 
 				setPhase( 1 );
-				await executePlan( a.containerPath, a.workspacePath, plan.operations );
+				await executePlan( a.containerPath, a.workspacePath, plan );
 
 				setPhase( 2 );
 				await publishChanges( a.containerPath, a.workspacePath );

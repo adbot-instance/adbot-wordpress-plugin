@@ -3,6 +3,7 @@ import { useOnboarding } from '../OnboardingProvider';
 import { getContainers } from '../../api/audit';
 import { installSnippet } from '../../api/settings';
 import ContainerSelector from '../../components/ContainerSelector';
+import SnippetCode from '../../components/SnippetCode';
 
 function describeMethod( method ) {
 	switch ( method ) {
@@ -82,14 +83,11 @@ export default function StepProperty() {
 				container.publicId || container.containerId,
 				container.path
 			);
-			// If a matching snippet is already on the site, Adbot does NOT inject
-			// a duplicate. Show the user what we found and let them continue.
-			if ( res?.externalDetected ) {
-				setResult( res );
-				setInstalling( false );
-				return;
-			}
-			await advance( 'audit' );
+			// Always show the confirmation screen with the exact installed code —
+			// whether Adbot injected its own snippet or detected a matching one
+			// already on the site (in which case it won't add a duplicate).
+			setResult( res );
+			setInstalling( false );
 		} catch ( err ) {
 			setError( err.message || 'Failed to install snippet' );
 			setInstalling( false );
@@ -99,17 +97,38 @@ export default function StepProperty() {
 
 	if ( result ) {
 		const method = result.detection?.method;
+		const isExternal = !! result.externalDetected;
 		return (
 			<div className="adbot-step">
 				<div className="adbot-step__eyebrow">Step 2 of 6</div>
-				<h1 className="adbot-step__title">Existing GTM snippet found</h1>
+				<h1 className="adbot-step__title">
+					{ isExternal ? 'Existing GTM snippet found' : 'GTM snippet installed' }
+				</h1>
 				<p className="adbot-step__lede">
-					<strong>{ result.containerId }</strong> is already installed on{ ' ' }
-					<strong>{ siteUrl }</strong>
-					{ method && method !== 'none' ? ` via ${ describeMethod( method ) }` : '' }.
-					Adbot won't add a second copy — a duplicate would make every tag fire
-					twice. We'll use the snippet that's already there.
+					{ isExternal ? (
+						<>
+							<strong>{ result.containerId }</strong> is already installed on{ ' ' }
+							<strong>{ siteUrl }</strong>
+							{ method && method !== 'none' ? ` via ${ describeMethod( method ) }` : '' }.
+							Adbot won't add a second copy — a duplicate would make every tag fire
+							twice. We'll use the snippet that's already there.
+						</>
+					) : (
+						<>
+							Adbot added container <strong>{ result.containerId }</strong> to{ ' ' }
+							<strong>{ siteUrl }</strong>. This is the exact code now on your site:
+						</>
+					) }
 				</p>
+				<SnippetCode
+					head={ result.snippetHead }
+					body={ result.snippetBody }
+					note={
+						isExternal
+							? 'For reference, the standard snippet for this container:'
+							: null
+					}
+				/>
 				<div className="adbot-step__actions">
 					<button
 						type="button"
@@ -117,6 +136,16 @@ export default function StepProperty() {
 						onClick={ () => advance( 'audit' ) }
 					>
 						Continue to audit
+					</button>
+					<button
+						type="button"
+						className="adbot-btn adbot-btn--ghost"
+						onClick={ () => {
+							setResult( null );
+							setInstallingPath( null );
+						} }
+					>
+						Use a different container
 					</button>
 				</div>
 			</div>

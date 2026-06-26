@@ -8,6 +8,7 @@ use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
 use Adbot\Consent_Required_Exception;
 use Adbot\Tracking\Snippet_Detector;
+use Adbot\Tracking\Snippet_Injector;
 
 class Snippet_Controller extends REST_Controller {
 
@@ -22,7 +23,9 @@ class Snippet_Controller extends REST_Controller {
 					'type'              => 'string',
 					'sanitize_callback' => 'sanitize_text_field',
 					'validate_callback' => function ( $value ) {
-						return preg_match( '/^GTM-[A-Z0-9]+$/', $value );
+						// Strict boolean: preg_match() returns int 0 on no-match, and
+						// WP only rejects on `false === $valid`, so `=== 1` is required.
+						return 1 === preg_match( '/^GTM-[A-Z0-9]+$/', (string) $value );
 					},
 				],
 				'containerPath' => [
@@ -107,6 +110,8 @@ class Snippet_Controller extends REST_Controller {
 			'injected'         => ! $external,
 			'externalDetected' => $external,
 			'detection'        => $detection,
+			'snippetHead'      => Snippet_Injector::head_snippet( $container_id ),
+			'snippetBody'      => Snippet_Injector::body_snippet( $container_id ),
 		], 200 );
 	}
 
@@ -173,12 +178,15 @@ class Snippet_Controller extends REST_Controller {
 	}
 
 	private function snippet_status_payload(): array {
+		$container_id = (string) get_option( 'adbot_snippet_container_id', '' );
 		return [
-			'containerId'      => (string) get_option( 'adbot_snippet_container_id', '' ),
+			'containerId'      => $container_id,
 			'containerPath'    => (string) get_option( 'adbot_snippet_container_path', '' ),
 			'active'           => (bool) get_option( 'adbot_snippet_active' ),
 			'externalDetected' => (bool) get_option( 'adbot_snippet_external_detected' ),
 			'detection'        => get_option( 'adbot_snippet_detection', null ),
+			'snippetHead'      => '' !== $container_id ? Snippet_Injector::head_snippet( $container_id ) : '',
+			'snippetBody'      => '' !== $container_id ? Snippet_Injector::body_snippet( $container_id ) : '',
 		];
 	}
 

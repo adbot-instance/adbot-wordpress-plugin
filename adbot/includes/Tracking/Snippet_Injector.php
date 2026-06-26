@@ -19,39 +19,50 @@ class Snippet_Injector {
 
 	public function inject_head_snippet(): void {
 		$container_id = $this->get_active_container_id();
-		if ( ! $container_id ) {
+		if ( ! $container_id || $this->should_exclude_current_user() ) {
 			return;
 		}
 
-		if ( $this->should_exclude_current_user() ) {
-			return;
-		}
-
-		echo "<!-- Google Tag Manager (Adbot) -->\n";
-		echo '<script id="adbot-gtm-loader" data-adbot="gtm">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':' . "\n";
-		echo "new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n";
-		echo "j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n";
-		echo "'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n";
-		echo "})(window,document,'script','dataLayer','" . esc_js( $container_id ) . "');</script>\n";
-		echo "<!-- End Google Tag Manager (Adbot) -->\n";
+		// Built from the same source the admin UI displays, so what we show the
+		// user is byte-for-byte what is injected. The dynamic id is escaped inside
+		// head_snippet(); the rest is a static, trusted template.
+		echo self::head_snippet( $container_id ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 
 	public function inject_body_snippet(): void {
 		$container_id = $this->get_active_container_id();
-		if ( ! $container_id ) {
+		if ( ! $container_id || $this->should_exclude_current_user() ) {
 			return;
 		}
 
-		if ( $this->should_exclude_current_user() ) {
-			return;
-		}
-
-		echo "<!-- Google Tag Manager (noscript) (Adbot) -->\n";
-		echo '<noscript data-adbot="gtm"><iframe id="adbot-gtm-noscript" src="https://www.googletagmanager.com/ns.html?id=' . esc_attr( $container_id ) . '"' . "\n";
-		echo 'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>' . "\n";
-		echo "<!-- End Google Tag Manager (noscript) (Adbot) -->\n";
+		echo self::body_snippet( $container_id ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		$this->body_snippet_injected = true;
+	}
+
+	/**
+	 * The exact `<head>` GTM loader snippet Adbot injects for a container.
+	 * Single source of truth shared by the injector and the REST/admin UI so the
+	 * code shown to the user always matches what is on the page.
+	 */
+	public static function head_snippet( string $container_id ): string {
+		return "<!-- Google Tag Manager (Adbot) -->\n"
+			. '<script id="adbot-gtm-loader" data-adbot="gtm">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({\'gtm.start\':' . "\n"
+			. "new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n"
+			. "j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n"
+			. "'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n"
+			. "})(window,document,'script','dataLayer','" . esc_js( $container_id ) . "');</script>\n"
+			. '<!-- End Google Tag Manager (Adbot) -->';
+	}
+
+	/**
+	 * The exact `<body>` (noscript) GTM snippet Adbot injects for a container.
+	 */
+	public static function body_snippet( string $container_id ): string {
+		return "<!-- Google Tag Manager (noscript) (Adbot) -->\n"
+			. '<noscript data-adbot="gtm"><iframe id="adbot-gtm-noscript" src="https://www.googletagmanager.com/ns.html?id=' . esc_attr( $container_id ) . '"' . "\n"
+			. 'height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>' . "\n"
+			. '<!-- End Google Tag Manager (noscript) (Adbot) -->';
 	}
 
 	public function inject_body_snippet_fallback(): void {

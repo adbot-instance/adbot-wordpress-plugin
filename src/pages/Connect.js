@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { Notice, Modal, Button } from '@wordpress/components';
 import { getAuthStatus, initiateOAuth, disconnect } from '../api/auth';
 import { installSnippet, uninstallSnippet } from '../api/settings';
 import ContainerSelector from '../components/ContainerSelector';
 import GoogleSignInButton from '../components/GoogleSignInButton';
+import SnippetCode from '../components/SnippetCode';
 
 export default function Connect() {
 	const [ authStatus, setAuthStatus ] = useState( null );
@@ -84,6 +85,11 @@ export default function Connect() {
 
 	const connected = authStatus?.connected;
 	const snippetActive = authStatus?.snippetActive;
+	const externalDetected = authStatus?.snippetExternalDetected;
+	const snippetContainerId = authStatus?.snippetContainerId;
+	// An existing third-party snippet was found, so Adbot is intentionally not
+	// injecting a duplicate — show it for reference rather than the picker.
+	const showExisting = connected && externalDetected && !! snippetContainerId;
 
 	return (
 		<div className="adbot-connect">
@@ -136,7 +142,7 @@ export default function Connect() {
 				</div>
 			) }
 
-			{ connected && ! snippetActive && (
+			{ connected && ! snippetActive && ! showExisting && (
 				<div className="adbot-connect__section">
 					<h3>{ __( 'Select GTM container', 'adbot' ) }</h3>
 					<p>{ __( 'Choose the GTM container to install on this WordPress site.', 'adbot' ) }</p>
@@ -153,9 +159,31 @@ export default function Connect() {
 					<h3>{ __( 'GTM snippet installed', 'adbot' ) }</h3>
 					<p>
 						{ __( 'Container', 'adbot' ) }{' '}
-						<strong>{ authStatus.snippetContainerId }</strong>{' '}
-						{ __( 'is active on your site.', 'adbot' ) }
+						<strong>{ snippetContainerId }</strong>{' '}
+						{ __( 'is active on your site. This is the exact code Adbot added:', 'adbot' ) }
 					</p>
+					<SnippetCode head={ authStatus.snippetHead } body={ authStatus.snippetBody } />
+					<button className="button" onClick={ handleUninstallSnippet }>
+						{ __( 'Remove snippet', 'adbot' ) }
+					</button>
+				</div>
+			) }
+
+			{ showExisting && (
+				<div className="adbot-connect__section">
+					<h3>{ __( 'Existing GTM snippet detected', 'adbot' ) }</h3>
+					<SnippetCode
+						head={ authStatus.snippetHead }
+						body={ authStatus.snippetBody }
+						note={ sprintf(
+							/* translators: %s: GTM container id, e.g. GTM-XXXXXXX. */
+							__(
+								'A GTM snippet for %s was already on your site, so Adbot did not add a duplicate (a second copy would make every tag fire twice). For reference, the standard snippet for this container is:',
+								'adbot'
+							),
+							snippetContainerId
+						) }
+					/>
 					<button className="button" onClick={ handleUninstallSnippet }>
 						{ __( 'Remove snippet', 'adbot' ) }
 					</button>

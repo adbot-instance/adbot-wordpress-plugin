@@ -3,7 +3,7 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.10
+Stable tag: 1.0.11
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -85,6 +85,12 @@ Define either in `wp-config.php` (both optional):
 3. Audit results.
 
 == Changelog ==
+
+= 1.0.11 =
+* Fix: container, snippet, and settings selections (including Debug mode) could appear not to save on sites with aggressive caching such as LiteSpeed — the cache served stale admin data even though the change was saved. The plugin now instructs page/object/CDN caches never to store its authenticated admin REST responses, and flushes any stale entries once on update.
+* New: the Connect tab and the onboarding flow now show the exact GTM `<head>` and `<body>` snippet code that is on your site.
+* Improve: the onboarding tracking report now lists each issue found with its severity (instead of only counts), shows what is already in your GTM container (tags, triggers, variables), and recognises a brand-new empty container to guide first-time setup.
+* Fix: corrected the "Apply fixes" request so the generated GTM setup plan is sent to the backend in the expected shape.
 
 = 1.0.10 =
 * Fix: payment failed with "Invalid request body" because the completed audit's id was not stored (the backend returns audit_id; the plugin read auditId). The audit id is now saved correctly, and the payment step shows a clear message if no audit has been run yet.

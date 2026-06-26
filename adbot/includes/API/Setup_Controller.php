@@ -49,7 +49,7 @@ class Setup_Controller extends REST_Controller {
 				],
 				'plan' => [
 					'required' => true,
-					'type'     => 'array',
+					'type'     => 'object',
 				],
 			],
 		] );

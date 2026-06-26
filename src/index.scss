@@ -1263,3 +1263,206 @@
 	margin-left: 10px;
 	color: #00a32a;
 }
+
+.adbot-snippet-code {
+	margin: 16px 0;
+}
+
+.adbot-snippet-code__note {
+	margin: 0 0 12px;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.adbot-snippet-code__block {
+	margin-bottom: 16px;
+}
+
+.adbot-snippet-code__label {
+	margin-bottom: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.adbot-snippet-code__pre {
+	margin: 0;
+	padding: 12px 14px;
+	max-width: 100%;
+	overflow-x: auto;
+	background: #1e1e1e;
+	border-radius: 6px;
+	color: #e6e6e6;
+	font-family: Menlo, Consolas, Monaco, monospace;
+	font-size: 12px;
+	line-height: 1.5;
+	white-space: pre;
+	tab-size: 2;
+
+	code {
+		background: none;
+		color: inherit;
+		padding: 0;
+		font-size: inherit;
+	}
+}
+
+/* Onboarding report — issue list + severity badges + greenfield setup list */
+.adbot-sev-badge {
+	display: inline-block;
+	flex: none;
+	padding: 1px 8px;
+	border: 1px solid currentColor;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.adbot-report__issues {
+	margin-top: 20px;
+}
+
+.adbot-report__issues-heading {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.adbot-issue-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.adbot-issue-list__item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-bottom: 1px solid #f0f0f0;
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.adbot-issue-list__title {
+	font-size: 14px;
+	color: #1e1e1e;
+}
+
+.adbot-setup-list__heading {
+	margin-bottom: 10px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.adbot-setup-list {
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+}
+
+.adbot-setup-list__item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 0;
+	font-size: 14px;
+	color: #1e1e1e;
+	border-bottom: 1px solid #f0f0f0;
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.adbot-setup-list__dot {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	border: 2px solid #ff6900;
+	border-radius: 50%;
+}
+
+.adbot-inventory {
+	margin-top: 20px;
+}
+
+.adbot-inventory__groups {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 180px, 1fr ) );
+	gap: 12px;
+}
+
+.adbot-inventory__group {
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.adbot-inventory__group-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+	background: #f6f7f7;
+	border-bottom: 1px solid #e0e0e0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1e1e1e;
+}
+
+.adbot-inventory__count {
+	min-width: 22px;
+	padding: 0 6px;
+	border-radius: 999px;
+	background: #2271b1;
+	color: #fff;
+	font-size: 11px;
+	line-height: 18px;
+	text-align: center;
+}
+
+.adbot-inventory__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.adbot-inventory__item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 7px 12px;
+	border-bottom: 1px solid #f3f3f3;
+
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.adbot-inventory__name {
+	font-size: 13px;
+	color: #1e1e1e;
+	word-break: break-word;
+}
+
+.adbot-inventory__type {
+	font-size: 11px;
+	color: #757575;
+}
+
+.adbot-inventory__empty {
+	padding: 10px 12px;
+	font-size: 12px;
+	color: #757575;
+}
