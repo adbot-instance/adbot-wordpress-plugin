@@ -22,6 +22,8 @@ class Status_Controller extends REST_Controller {
 		$snippet_active         = (bool) get_option( 'adbot_snippet_active' );
 		$snippet_container_id   = (string) get_option( 'adbot_snippet_container_id', '' );
 		$snippet_container_path = (string) get_option( 'adbot_snippet_container_path', '' );
+		$snippet_external       = (bool) get_option( 'adbot_snippet_external_detected' );
+		$snippet_detection      = get_option( 'adbot_snippet_detection', null );
 
 		$connected = false;
 		$account   = null;
@@ -39,9 +41,11 @@ class Status_Controller extends REST_Controller {
 		return new WP_REST_Response( [
 			'connected'            => $connected,
 			'account'              => $account,
-			'snippetActive'        => $snippet_active,
-			'snippetContainerId'   => $snippet_container_id,
-			'snippetContainerPath' => $snippet_container_path,
+			'snippetActive'           => $snippet_active,
+			'snippetContainerId'      => $snippet_container_id,
+			'snippetContainerPath'    => $snippet_container_path,
+			'snippetExternalDetected' => $snippet_external,
+			'snippetDetection'        => $snippet_detection,
 			'siteUrl'              => get_site_url(),
 			'wpVersion'            => get_bloginfo( 'version' ),
 			'pluginVersion'        => ADBOT_VERSION,

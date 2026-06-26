@@ -1,7 +1,46 @@
 import { useState, useEffect } from '@wordpress/element';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import { Notice } from '@wordpress/components';
-import { getSettings, updateSettings } from '../api/settings';
+import {
+	getSettings,
+	updateSettings,
+	getSnippetStatus,
+	rescanSnippet,
+} from '../api/settings';
+
+function snippetStatusLabel( snippet ) {
+	if ( ! snippet || ! snippet.containerId ) {
+		return __(
+			'No container selected yet. Finish setup to install tracking.',
+			'adbot'
+		);
+	}
+	if ( snippet.externalDetected ) {
+		return sprintf(
+			/* translators: %s: GTM container ID. */
+			__(
+				'Existing %s snippet detected on your site — Adbot is not injecting a duplicate.',
+				'adbot'
+			),
+			snippet.containerId
+		);
+	}
+	if ( snippet.active ) {
+		return sprintf(
+			/* translators: %s: GTM container ID. */
+			__(
+				"Adbot is injecting %s into your site's <head> and <body>.",
+				'adbot'
+			),
+			snippet.containerId
+		);
+	}
+	return sprintf(
+		/* translators: %s: GTM container ID. */
+		__( '%s is selected but the snippet is not active.', 'adbot' ),
+		snippet.containerId
+	);
+}
 
 export default function Settings() {
 	const [ settings, setSettings ] = useState( null );
@@ -9,6 +48,8 @@ export default function Settings() {
 	const [ saving, setSaving ] = useState( false );
 	const [ saved, setSaved ] = useState( false );
 	const [ error, setError ] = useState( '' );
+	const [ snippet, setSnippet ] = useState( null );
+	const [ rescanning, setRescanning ] = useState( false );
 
 	useEffect( () => {
 		getSettings()
@@ -17,7 +58,20 @@ export default function Settings() {
 				setLoading( false );
 			} )
 			.catch( () => setLoading( false ) );
+		getSnippetStatus()
+			.then( setSnippet )
+			.catch( () => {} );
 	}, [] );
+
+	const handleRescan = async () => {
+		setRescanning( true );
+		try {
+			setSnippet( await rescanSnippet() );
+		} catch {
+			// Non-fatal — leave the last known status in place.
+		}
+		setRescanning( false );
+	};
 
 	const handleSave = async () => {
 		setSaving( true );
@@ -60,6 +114,29 @@ export default function Settings() {
 
 			<table className="form-table">
 				<tbody>
+					<tr>
+						<th scope="row">{ __( 'GTM snippet', 'adbot' ) }</th>
+						<td>
+							<p style={ { margin: '0 0 8px' } }>
+								{ snippetStatusLabel( snippet ) }
+							</p>
+							{ snippet?.detection?.evidence && (
+								<p className="description">{ snippet.detection.evidence }</p>
+							) }
+							{ snippet?.containerId && (
+								<button
+									type="button"
+									className="button"
+									onClick={ handleRescan }
+									disabled={ rescanning }
+								>
+									{ rescanning
+										? __( 'Re-scanning…', 'adbot' )
+										: __( 'Re-scan site', 'adbot' ) }
+								</button>
+							) }
+						</td>
+					</tr>
 					<tr>
 						<th scope="row">{ __( 'Exclude admins', 'adbot' ) }</th>
 						<td>

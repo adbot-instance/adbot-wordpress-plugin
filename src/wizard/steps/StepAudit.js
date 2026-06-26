@@ -82,8 +82,12 @@ export default function StepAudit() {
 					} )
 				);
 
-				if ( result.auditId ) {
-					await setAuditId( result.auditId );
+				// Backend returns `audit_id` (snake_case); persist it so the
+				// payment step can reference the audit. Without this the
+				// onboarding auditId stays empty and /payments/initialize fails.
+				const auditId = result.audit_id || result.auditId;
+				if ( auditId ) {
+					await setAuditId( auditId );
 				}
 
 				setTimeout( () => advance( 'report' ), 500 );

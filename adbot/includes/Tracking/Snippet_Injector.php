@@ -67,6 +67,12 @@ class Snippet_Injector {
 			return null;
 		}
 
+		// A matching snippet from the theme / another plugin is already on the
+		// site — never add a second copy (it would double-fire every tag).
+		if ( get_option( 'adbot_snippet_external_detected' ) ) {
+			return null;
+		}
+
 		$container_id = get_option( 'adbot_snippet_container_id' );
 		if ( ! $container_id || ! preg_match( '/^GTM-[A-Z0-9]+$/', $container_id ) ) {
 			return null;

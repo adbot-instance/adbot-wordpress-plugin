@@ -4,6 +4,28 @@ import { getContainers } from '../../api/audit';
 import { installSnippet } from '../../api/settings';
 import ContainerSelector from '../../components/ContainerSelector';
 
+function describeMethod( method ) {
+	switch ( method ) {
+		case 'loader':
+		case 'inline':
+			return 'the page <head> script';
+		case 'noscript':
+			return 'the <noscript> fallback';
+		case 'gtm4wp':
+			return 'the GTM4WP plugin';
+		case 'site_kit':
+			return 'Google Site Kit';
+		case 'monsterinsights':
+			return 'MonsterInsights';
+		case 'wpcode':
+			return 'a code-snippet plugin';
+		case 'consent_deferred':
+			return 'a consent / cookie plugin';
+		default:
+			return 'an existing install';
+	}
+}
+
 function bestMatch( accounts, siteUrl ) {
 	const host = siteUrl.replace( /^https?:\/\//, '' ).replace( /\/.*$/, '' ).toLowerCase();
 	let best = null;
@@ -33,6 +55,7 @@ export default function StepProperty() {
 	const [ showAll, setShowAll ] = useState( false );
 	const [ installing, setInstalling ] = useState( false );
 	const [ installingPath, setInstallingPath ] = useState( null );
+	const [ result, setResult ] = useState( null );
 
 	const siteUrl = window.adbotAdmin?.siteUrl || '';
 
@@ -55,10 +78,17 @@ export default function StepProperty() {
 		setError( null );
 		try {
 			// The snippet uses the public GTM-XXXX id, not the numeric containerId.
-			await installSnippet(
+			const res = await installSnippet(
 				container.publicId || container.containerId,
 				container.path
 			);
+			// If a matching snippet is already on the site, Adbot does NOT inject
+			// a duplicate. Show the user what we found and let them continue.
+			if ( res?.externalDetected ) {
+				setResult( res );
+				setInstalling( false );
+				return;
+			}
 			await advance( 'audit' );
 		} catch ( err ) {
 			setError( err.message || 'Failed to install snippet' );
@@ -66,6 +96,32 @@ export default function StepProperty() {
 			setInstallingPath( null );
 		}
 	};
+
+	if ( result ) {
+		const method = result.detection?.method;
+		return (
+			<div className="adbot-step">
+				<div className="adbot-step__eyebrow">Step 2 of 6</div>
+				<h1 className="adbot-step__title">Existing GTM snippet found</h1>
+				<p className="adbot-step__lede">
+					<strong>{ result.containerId }</strong> is already installed on{ ' ' }
+					<strong>{ siteUrl }</strong>
+					{ method && method !== 'none' ? ` via ${ describeMethod( method ) }` : '' }.
+					Adbot won't add a second copy — a duplicate would make every tag fire
+					twice. We'll use the snippet that's already there.
+				</p>
+				<div className="adbot-step__actions">
+					<button
+						type="button"
+						className="adbot-btn adbot-btn--primary"
+						onClick={ () => advance( 'audit' ) }
+					>
+						Continue to audit
+					</button>
+				</div>
+			</div>
+		);
+	}
 
 	if ( loading ) {
 		return (

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Adbot Tracking Platform
  * Description: Connect your Google marketing stack in one click. Inject a Google Tag Manager container and audit your tracking setup.
- * Version:     1.0.8
+ * Version:     1.0.10
  * Author:      Adbot
  * Author URI:  https://adbot.co.za
  * License:     GPL-2.0-or-later
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ADBOT_VERSION', '1.0.8' );
+define( 'ADBOT_VERSION', '1.0.10' );
 define( 'ADBOT_PLUGIN_FILE', __FILE__ );
 define( 'ADBOT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADBOT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

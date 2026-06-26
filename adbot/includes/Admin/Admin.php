@@ -102,6 +102,12 @@ class Admin {
 			'version'   => ADBOT_VERSION,
 			'siteUrl'   => get_site_url(),
 			'siteName'  => get_bloginfo( 'name' ),
+			// Display price for the "Unlock fixes" step (whole currency units).
+			// The actual charge is authoritative on the backend; this is the
+			// shown amount and can be overridden via the ADBOT_FIX_PRICE /
+			// ADBOT_FIX_CURRENCY constants in wp-config.php.
+			'fixPrice'  => (int) ( defined( 'ADBOT_FIX_PRICE' ) ? ADBOT_FIX_PRICE : 4950 ),
+			'currency'  => (string) ( defined( 'ADBOT_FIX_CURRENCY' ) ? ADBOT_FIX_CURRENCY : 'ZAR' ),
 			'brand'     => [
 				'name'        => __( 'Tracking', 'adbot-tracking-platform' ),
 				'tagline'     => __( 'Automated Google Analytics and Tag Manager setup', 'adbot-tracking-platform' ),

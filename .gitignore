@@ -46,7 +46,7 @@ package-lock.json
 .tmp/
 
 # WP-env / local DB dumps
-.wp-env-override.json
+.wp-env.override.json
 *.sql
 
 # Development

@@ -35,9 +35,16 @@ class Payments_Controller extends REST_Controller {
 
 	public function initialize( WP_REST_Request $request ): WP_REST_Response {
 		try {
-			$state  = $this->read_state();
+			$state    = $this->read_state();
+			$audit_id = (string) ( $state['auditId'] ?? '' );
+			if ( '' === $audit_id ) {
+				return $this->error_response(
+					__( 'Run the tracking audit before unlocking fixes.', 'adbot-tracking-platform' ),
+					400
+				);
+			}
 			$result = ( new Client() )->post( '/payments/initialize', [
-				'audit_id' => (string) ( $state['auditId'] ?? '' ),
+				'audit_id' => $audit_id,
 			] );
 
 			if ( ! empty( $result['reference'] ) ) {

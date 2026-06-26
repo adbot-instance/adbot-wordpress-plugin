@@ -7,6 +7,7 @@ use WP_REST_Response;
 use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
 use Adbot\Consent_Required_Exception;
+use Adbot\Tracking\Snippet_Detector;
 
 class Snippet_Controller extends REST_Controller {
 
@@ -45,6 +46,18 @@ class Snippet_Controller extends REST_Controller {
 			'callback'            => [ $this, 'uninstall_snippet' ],
 			'permission_callback' => [ $this, 'permission_callback' ],
 		] );
+
+		register_rest_route( $this->namespace, '/snippet/status', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'get_snippet_status' ],
+			'permission_callback' => [ $this, 'permission_callback' ],
+		] );
+
+		register_rest_route( $this->namespace, '/snippet/rescan', [
+			'methods'             => 'POST',
+			'callback'            => [ $this, 'rescan_snippet' ],
+			'permission_callback' => [ $this, 'permission_callback' ],
+		] );
 	}
 
 	public function install_snippet( WP_REST_Request $request ): WP_REST_Response {
@@ -52,28 +65,48 @@ class Snippet_Controller extends REST_Controller {
 		$container_path  = (string) $request->get_param( 'containerPath' );
 		$ga4_measurement = (string) $request->get_param( 'ga4MeasurementId' );
 
-		// Local state: used by Snippet_Injector on every front-end page.
+		// Always remember the chosen container, even if we end up not injecting
+		// (because a matching snippet is already on the site). The audit and any
+		// later re-scan rely on this.
 		update_option( 'adbot_snippet_container_id', $container_id );
-		update_option( 'adbot_snippet_active', true );
 		if ( '' !== $container_path ) {
 			update_option( 'adbot_snippet_container_path', $container_path );
 		}
 
-		// Tell the backend so it can record the install. Failure is non-critical.
+		// 1. Look at the live site for a matching snippet we did NOT put there.
+		//    The local scan works without consent; the backend may refine it.
+		$detection = Snippet_Detector::detect( $container_id );
+
+		// 2. Tell the backend so it can record the install AND run its own,
+		//    richer detection (headless render fallback, plugin/CMS signatures).
+		//    Failure is non-critical — we fall back to the local scan.
 		try {
-			( new Client() )->post( '/gtm/snippet/install', [
+			$backend = ( new Client() )->post( '/gtm/snippet/install', [
 				'container_id'       => $container_id,
 				'container_path'     => $container_path,
 				'ga4_measurement_id' => $ga4_measurement,
 				'site_url'           => get_site_url(),
 			], Client::SLOW_TIMEOUT );
+
+			if ( isset( $backend['detection'] ) && is_array( $backend['detection'] ) ) {
+				$detection = self::merge_detection( $detection, $backend['detection'] );
+			}
 		} catch ( Consent_Required_Exception | Backend_Exception $e ) {
 			$this->log_exception( 'snippet_install_record', $e );
 		}
 
+		$external = ! empty( $detection['found'] );
+
+		// 3. Only inject our own snippet when no pre-existing one is on the page;
+		//    otherwise every tag would fire twice.
+		$this->store_detection( $external, $detection );
+
 		return new WP_REST_Response( [
-			'installed'   => true,
-			'containerId' => $container_id,
+			'installed'        => true,
+			'containerId'      => $container_id,
+			'injected'         => ! $external,
+			'externalDetected' => $external,
+			'detection'        => $detection,
 		], 200 );
 	}
 
@@ -81,6 +114,8 @@ class Snippet_Controller extends REST_Controller {
 		delete_option( 'adbot_snippet_active' );
 		delete_option( 'adbot_snippet_container_id' );
 		delete_option( 'adbot_snippet_container_path' );
+		delete_option( 'adbot_snippet_external_detected' );
+		delete_option( 'adbot_snippet_detection' );
 
 		try {
 			( new Client() )->post( '/gtm/snippet/uninstall' );
@@ -89,5 +124,93 @@ class Snippet_Controller extends REST_Controller {
 		}
 
 		return new WP_REST_Response( [ 'uninstalled' => true ], 200 );
+	}
+
+	public function get_snippet_status( WP_REST_Request $request ): WP_REST_Response {
+		return new WP_REST_Response( $this->snippet_status_payload(), 200 );
+	}
+
+	/**
+	 * Re-scan the live site for the currently selected container and update
+	 * whether Adbot injects its own snippet. Lets the user fix things after they
+	 * add or remove a third-party snippet without re-running the whole wizard.
+	 */
+	public function rescan_snippet( WP_REST_Request $request ): WP_REST_Response {
+		$container_id = (string) get_option( 'adbot_snippet_container_id', '' );
+		if ( '' === $container_id ) {
+			return new WP_REST_Response( [ 'error' => 'no_container' ], 400 );
+		}
+
+		$detection = Snippet_Detector::detect( $container_id );
+
+		try {
+			$backend = ( new Client() )->post( '/gtm/snippet/detect', [
+				'container_id' => $container_id,
+				'site_url'     => get_site_url(),
+			], Client::SLOW_TIMEOUT );
+
+			if ( isset( $backend['detection'] ) && is_array( $backend['detection'] ) ) {
+				$detection = self::merge_detection( $detection, $backend['detection'] );
+			}
+		} catch ( Consent_Required_Exception | Backend_Exception $e ) {
+			$this->log_exception( 'snippet_rescan', $e );
+		}
+
+		$external = ! empty( $detection['found'] );
+		$this->store_detection( $external, $detection );
+
+		return new WP_REST_Response( $this->snippet_status_payload(), 200 );
+	}
+
+	/**
+	 * Persist the detection verdict and toggle our injector accordingly.
+	 * When a matching third-party snippet is present we keep the injector OFF.
+	 */
+	private function store_detection( bool $external, array $detection ): void {
+		update_option( 'adbot_snippet_active', ! $external );
+		update_option( 'adbot_snippet_external_detected', $external );
+		update_option( 'adbot_snippet_detection', $detection );
+	}
+
+	private function snippet_status_payload(): array {
+		return [
+			'containerId'      => (string) get_option( 'adbot_snippet_container_id', '' ),
+			'containerPath'    => (string) get_option( 'adbot_snippet_container_path', '' ),
+			'active'           => (bool) get_option( 'adbot_snippet_active' ),
+			'externalDetected' => (bool) get_option( 'adbot_snippet_external_detected' ),
+			'detection'        => get_option( 'adbot_snippet_detection', null ),
+		];
+	}
+
+	/**
+	 * Combine the local scan with the backend's verdict. The backend wins when
+	 * it produced a usable result (no fetch error / anti-bot block); otherwise
+	 * we keep the local verdict and just carry across any extra IDs it saw.
+	 */
+	private static function merge_detection( array $local, array $backend ): array {
+		$backend_usable = empty( $backend['error'] ) && empty( $backend['blocked'] );
+
+		$other = array_values( array_unique( array_merge(
+			(array) ( $local['other_ids'] ?? [] ),
+			(array) ( $backend['other_ids'] ?? [] )
+		) ) );
+
+		if ( $backend_usable ) {
+			$found = ! empty( $backend['found'] );
+			return [
+				'found'             => $found,
+				'matched_container' => $found,
+				'method'            => (string) ( $backend['method'] ?? ( $local['method'] ?? 'none' ) ),
+				'evidence'          => (string) ( $backend['evidence'] ?? '' ),
+				'other_ids'         => $other,
+				'source'            => 'backend',
+				'error'             => null,
+			];
+		}
+
+		// Backend couldn't help (blocked / errored): keep the local verdict.
+		$local['other_ids']      = $other;
+		$local['backend_status'] = ! empty( $backend['blocked'] ) ? 'blocked' : 'error';
+		return $local;
 	}
 }

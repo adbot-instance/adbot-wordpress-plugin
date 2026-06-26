@@ -19,3 +19,11 @@ export function uninstallSnippet() {
 export function getStatus() {
 	return apiGet( 'status' );
 }
+
+export function getSnippetStatus() {
+	return apiGet( 'snippet/status' );
+}
+
+export function rescanSnippet() {
+	return apiPost( 'snippet/rescan', {} );
+}

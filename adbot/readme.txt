@@ -3,7 +3,7 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.8
+Stable tag: 1.0.10
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,12 @@ Define either in `wp-config.php` (both optional):
 
 == Changelog ==
 
+= 1.0.10 =
+* Fix: payment failed with "Invalid request body" because the completed audit's id was not stored (the backend returns audit_id; the plugin read auditId). The audit id is now saved correctly, and the payment step shows a clear message if no audit has been run yet.
+
+= 1.0.9 =
+* Fix: the "Unlock fixes" step showed the price as 0. The plugin now displays the correct amount (default ZAR 4950, overridable via the ADBOT_FIX_PRICE / ADBOT_FIX_CURRENCY constants). The charge amount remains authoritative on the Adbot backend.
+
 = 1.0.8 =
 * Fix: selecting a container then running the audit failed with "No GTM container selected." The plugin now sends the container's public GTM-XXXX id (which the snippet and audit require) instead of the numeric container id, so the audit runs correctly.
 
@@ -115,6 +121,12 @@ Define either in `wp-config.php` (both optional):
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.10 =
+Fixes "Invalid request body" when starting payment by correctly storing the audit id.
+
+= 1.0.9 =
+Fixes the payment step showing the price as 0.
 
 = 1.0.8 =
 Fixes "No GTM container selected" on the audit step after choosing a container.
