@@ -17,6 +17,7 @@ class Onboarding_Controller extends REST_Controller {
 		'welcome',
 		'connect',
 		'property',
+		'ga4',
 		'audit',
 		'report',
 		'pay',
@@ -206,9 +207,9 @@ class Onboarding_Controller extends REST_Controller {
 
 		$prune = [];
 		if ( ! $connected ) {
-			$prune = [ 'connect', 'property', 'audit', 'report', 'pay', 'apply' ];
+			$prune = [ 'connect', 'property', 'ga4', 'audit', 'report', 'pay', 'apply' ];
 		} elseif ( ! $snippet_active ) {
-			$prune = [ 'property', 'audit', 'report', 'pay', 'apply' ];
+			$prune = [ 'property', 'ga4', 'audit', 'report', 'pay', 'apply' ];
 		}
 		if ( $prune ) {
 			$completed = array_values( array_diff( $completed, $prune ) );
@@ -239,7 +240,10 @@ class Onboarding_Controller extends REST_Controller {
 		} elseif ( $is_init && $connected && ! $snippet_active ) {
 			$state['step'] = 'property';
 		} elseif ( $is_init && $connected && $snippet_active ) {
-			$state['step'] = 'audit';
+			// Route through the GA4 picker unless a measurement id was already chosen.
+			$state['step'] = '' === (string) get_option( 'adbot_ga4_measurement_id', '' )
+				? 'ga4'
+				: 'audit';
 		}
 
 		$state['connected']       = $connected;

@@ -3,7 +3,7 @@ import { getOnboarding, updateOnboarding } from '../api/onboarding';
 
 const OnboardingContext = createContext( null );
 
-const STEP_ORDER = [ 'welcome', 'connect', 'property', 'audit', 'report', 'pay', 'apply', 'done' ];
+const STEP_ORDER = [ 'welcome', 'connect', 'property', 'ga4', 'audit', 'report', 'pay', 'apply', 'done' ];
 
 // Steps the user is NOT allowed to rewind past (irreversible or in-flight).
 const NO_BACK_FROM = [ 'welcome', 'apply', 'done' ];

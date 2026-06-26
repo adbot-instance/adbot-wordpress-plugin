@@ -140,7 +140,7 @@ export default function StepConnect() {
 					/* translators: 1: current step number after Welcome, 2: total setup steps (excluding Welcome). */
 					__( 'Step %1$d of %2$d', 'adbot' ),
 					1,
-					6
+					7
 				) }
 			</div>
 			<h1 className="adbot-step__title">

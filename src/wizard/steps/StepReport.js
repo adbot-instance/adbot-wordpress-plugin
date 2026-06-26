@@ -126,7 +126,7 @@ export default function StepReport() {
 	if ( summary.total === 0 ) {
 		return (
 			<div className="adbot-step">
-				<div className="adbot-step__eyebrow">Step 4 of 6</div>
+				<div className="adbot-step__eyebrow">Step 5 of 7</div>
 				<h1 className="adbot-step__title">Your tracking is in great shape 🎉</h1>
 				<p className="adbot-step__lede">
 					We scanned your container and found no tracking gaps. No fixes needed, and no
@@ -167,7 +167,7 @@ export default function StepReport() {
 	if ( summary.isGreenfield ) {
 		return (
 			<div className="adbot-step">
-				<div className="adbot-step__eyebrow">Step 4 of 6</div>
+				<div className="adbot-step__eyebrow">Step 5 of 7</div>
 				<h1 className="adbot-step__title">Let’s set up your tracking</h1>
 				<p className="adbot-step__lede">
 					Your Tag Manager container is a clean slate. Here’s the essential tracking
@@ -213,7 +213,7 @@ export default function StepReport() {
 	// and gate the details + auto-fix behind payment.
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 4 of 6</div>
+			<div className="adbot-step__eyebrow">Step 5 of 7</div>
 			<h1 className="adbot-step__title">Your tracking health report</h1>
 
 			<div className="adbot-report">

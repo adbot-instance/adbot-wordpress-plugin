@@ -77,6 +77,12 @@ export default function StepAudit() {
 					'adbot_audit',
 					JSON.stringify( {
 						...result,
+						// Normalize the backend's snake_case fields to the camelCase the
+						// rest of the wizard reads (StepApply / gateAudit / StepReport);
+						// the chosen GA4 id overrides measurementId in the GA4 step.
+						measurementId: status?.ga4MeasurementId || result.measurementId || result.measurement_id || null,
+						workspacePath: result.workspacePath ?? result.workspace_path ?? '',
+						snippetInstalled: result.snippetInstalled ?? result.snippet_installed ?? null,
 						containerPath: path,
 						containerId,
 					} )
@@ -127,7 +133,7 @@ export default function StepAudit() {
 
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 3 of 6</div>
+			<div className="adbot-step__eyebrow">Step 4 of 7</div>
 			<h1 className="adbot-step__title">Running your tracking audit</h1>
 			<p className="adbot-step__lede">
 				This usually takes 10–20 seconds. Hang tight.

@@ -100,7 +100,7 @@ export default function StepProperty() {
 		const isExternal = !! result.externalDetected;
 		return (
 			<div className="adbot-step">
-				<div className="adbot-step__eyebrow">Step 2 of 6</div>
+				<div className="adbot-step__eyebrow">Step 2 of 7</div>
 				<h1 className="adbot-step__title">
 					{ isExternal ? 'Existing GTM snippet found' : 'GTM snippet installed' }
 				</h1>
@@ -133,9 +133,9 @@ export default function StepProperty() {
 					<button
 						type="button"
 						className="adbot-btn adbot-btn--primary"
-						onClick={ () => advance( 'audit' ) }
+						onClick={ () => advance( 'ga4' ) }
 					>
-						Continue to audit
+						Continue
 					</button>
 					<button
 						type="button"
@@ -180,7 +180,7 @@ export default function StepProperty() {
 
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 2 of 6</div>
+			<div className="adbot-step__eyebrow">Step 2 of 7</div>
 			<h1 className="adbot-step__title">Use this GTM container?</h1>
 			<p className="adbot-step__lede">
 				We matched the best container for <strong>{ siteUrl }</strong>. Confirm or pick a

@@ -11,6 +11,7 @@ export default function StepApply() {
 	const [ error, setError ] = useState( null );
 	const [ done, setDone ] = useState( false );
 	const [ audit, setAudit ] = useState( null );
+	const [ needsGa4, setNeedsGa4 ] = useState( false );
 	const started = useRef( false );
 
 	useEffect( () => {
@@ -23,6 +24,13 @@ export default function StepApply() {
 				if ( ! raw ) throw new Error( 'Audit data missing. Re-run the audit.' );
 				const a = JSON.parse( raw );
 				setAudit( a );
+
+				// No GA4 Measurement ID resolved — send the user back to the GA4
+				// picker instead of letting /setup/plan 400 with no recovery.
+				if ( ! a.measurementId ) {
+					setNeedsGa4( true );
+					return;
+				}
 
 				setPhase( 0 );
 				const planRes = await generatePlan( a.gaps, a.measurementId );
@@ -51,7 +59,7 @@ export default function StepApply() {
 
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 6 of 6</div>
+			<div className="adbot-step__eyebrow">Step 7 of 7</div>
 			<h1 className="adbot-step__title">
 				{ done ? 'All fixes published ✓' : 'Applying fixes to your GTM' }
 			</h1>
@@ -73,6 +81,15 @@ export default function StepApply() {
 					</li>
 				) ) }
 			</ul>
+
+			{ needsGa4 && (
+				<div className="adbot-step__actions">
+					<p className="adbot-error">We couldn’t determine your GA4 Measurement ID. Pick your GA4 property to continue.</p>
+					<button type="button" className="adbot-btn adbot-btn--primary" onClick={ () => advance( 'ga4' ) }>
+						Choose your GA4 property
+					</button>
+				</div>
+			) }
 
 			{ error && <p className="adbot-error">{ error }</p> }
 

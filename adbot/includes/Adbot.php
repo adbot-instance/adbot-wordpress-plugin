@@ -10,6 +10,7 @@ use Adbot\Admin\Admin;
 use Adbot\API\Auth_Controller;
 use Adbot\API\Status_Controller;
 use Adbot\API\Containers_Controller;
+use Adbot\API\GA4_Controller;
 use Adbot\API\Audit_Controller;
 use Adbot\API\Setup_Controller;
 use Adbot\API\Snippet_Controller;
@@ -155,6 +156,7 @@ class Adbot {
 			( new Auth_Controller() )->register_routes();
 			( new Status_Controller() )->register_routes();
 			( new Containers_Controller() )->register_routes();
+			( new GA4_Controller() )->register_routes();
 			( new Audit_Controller() )->register_routes();
 			( new Setup_Controller() )->register_routes();
 			( new Snippet_Controller() )->register_routes();

@@ -46,6 +46,7 @@ class Status_Controller extends REST_Controller {
 			'snippetContainerPath'    => $snippet_container_path,
 			'snippetExternalDetected' => $snippet_external,
 			'snippetDetection'        => $snippet_detection,
+			'ga4MeasurementId'        => (string) get_option( 'adbot_ga4_measurement_id', '' ),
 			'siteUrl'              => get_site_url(),
 			'wpVersion'            => get_bloginfo( 'version' ),
 			'pluginVersion'        => ADBOT_VERSION,

@@ -4,6 +4,7 @@ import { useEffect, useRef } from '@wordpress/element';
 import StepWelcome from './steps/StepWelcome';
 import StepConnect from './steps/StepConnect';
 import StepProperty from './steps/StepProperty';
+import StepGA4 from './steps/StepGA4';
 import StepAudit from './steps/StepAudit';
 import StepReport from './steps/StepReport';
 import StepPay from './steps/StepPay';
@@ -12,7 +13,8 @@ import StepApply from './steps/StepApply';
 const STEP_LABELS = [
 	[ 'welcome', __( 'Welcome', 'adbot' ) ],
 	[ 'connect', __( 'Connect Google', 'adbot' ) ],
-	[ 'property', __( 'Find property', 'adbot' ) ],
+	[ 'property', __( 'Choose container', 'adbot' ) ],
+	[ 'ga4', __( 'Select GA4 property', 'adbot' ) ],
 	[ 'audit', __( 'Audit tracking', 'adbot' ) ],
 	[ 'report', __( 'Review report', 'adbot' ) ],
 	[ 'pay', __( 'Unlock fixes', 'adbot' ) ],
@@ -47,6 +49,7 @@ const COMPONENTS = {
 	welcome: StepWelcome,
 	connect: StepConnect,
 	property: StepProperty,
+	ga4: StepGA4,
 	audit: StepAudit,
 	report: StepReport,
 	pay: StepPay,

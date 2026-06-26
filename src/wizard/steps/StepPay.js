@@ -81,7 +81,7 @@ export default function StepPay() {
 
 	return (
 		<div className="adbot-step">
-			<div className="adbot-step__eyebrow">Step 5 of 6</div>
+			<div className="adbot-step__eyebrow">Step 6 of 7</div>
 			<h1 className="adbot-step__title">Unlock automated fixes</h1>
 			<p className="adbot-step__lede">
 				One-time payment. We write every fix to your GTM workspace and publish a new
