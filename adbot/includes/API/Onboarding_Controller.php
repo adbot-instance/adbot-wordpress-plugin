@@ -140,6 +140,7 @@ class Onboarding_Controller extends REST_Controller {
 			'auditId'        => '',
 			'entitlementRef' => '',
 			'skipped'        => false,
+			'pendingRef'     => '',
 		];
 
 		$stored = get_option( self::OPTION, [] );
@@ -259,6 +260,7 @@ class Onboarding_Controller extends REST_Controller {
 			'auditId'        => (string) $state['auditId'],
 			'entitlementRef' => (string) $state['entitlementRef'],
 			'skipped'        => (bool) $state['skipped'],
+			'pendingRef'     => (string) $state['pendingRef'],
 		], false );
 
 		return $state;

@@ -23,16 +23,40 @@ function loadPaystack() {
 }
 
 export default function StepPay() {
-	const { advance } = useOnboarding();
+	const { state, advance } = useOnboarding();
 	const [ loading, setLoading ] = useState( false );
 	const [ verifying, setVerifying ] = useState( false );
 	const [ error, setError ] = useState( null );
+	const [ resumeChecked, setResumeChecked ] = useState( false );
 
 	useEffect( () => {
 		loadPaystack().catch( () =>
 			setError( 'Could not load Paystack. Check your connection and retry.' )
 		);
 	}, [] );
+
+	// Resume an in-flight checkout: if a payment was initialized but the Paystack
+	// window closed (or the page reloaded) before the callback verified it, the
+	// reference is stored as `pendingRef`. Verify it once on mount — if it paid,
+	// advance; otherwise let the user pay again.
+	useEffect( () => {
+		if ( resumeChecked ) return;
+		const pendingRef = state?.pendingRef;
+		if ( ! pendingRef ) return;
+		setResumeChecked( true );
+		setVerifying( true );
+		verifyPayment( pendingRef )
+			.then( ( res ) => {
+				if ( res && res.paid ) {
+					advance( 'apply' );
+				}
+			} )
+			.catch( () => {
+				// Not paid / transient failure — silently fall back to letting the
+				// user start the payment again. No scary error for an abandoned checkout.
+			} )
+			.finally( () => setVerifying( false ) );
+	}, [ state, resumeChecked, advance ] );
 
 	const price = window.adbotAdmin?.fixPrice || 0;
 	const currency = window.adbotAdmin?.currency || 'ZAR';
