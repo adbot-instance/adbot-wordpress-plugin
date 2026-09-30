@@ -3,7 +3,7 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.11
+Stable tag: 1.0.12
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -86,6 +86,12 @@ Define either in `wp-config.php` (both optional):
 
 == Changelog ==
 
+= 1.0.12 =
+* New: payments settled outside the checkout now unlock the fixes step on their own. If you paid by EFT and the Adbot team verified it, or you bought on adbot.co.za before installing the plugin, the wizard recognises it — you no longer have to pay a second time.
+* Fix: disconnecting Google no longer made it look as though you had not paid. The payment is remembered independently of the Google connection.
+* Fix: restarting the setup wizard no longer jumped straight back to the "Apply fixes" step on the next screen load.
+* Improve: when the Adbot backend is briefly unreachable, the plugin now backs off instead of retrying on every admin screen, so the setup pages stay responsive.
+
 = 1.0.11 =
 * Fix: container, snippet, and settings selections (including Debug mode) could appear not to save on sites with aggressive caching such as LiteSpeed — the cache served stale admin data even though the change was saved. The plugin now instructs page/object/CDN caches never to store its authenticated admin REST responses, and flushes any stale entries once on update.
 * New: the Connect tab and the onboarding flow now show the exact GTM `<head>` and `<body>` snippet code that is on your site.
@@ -127,6 +133,9 @@ Define either in `wp-config.php` (both optional):
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.12 =
+Payments made by EFT or on adbot.co.za now unlock the fixes step automatically, without paying again.
 
 = 1.0.10 =
 Fixes "Invalid request body" when starting payment by correctly storing the audit id.

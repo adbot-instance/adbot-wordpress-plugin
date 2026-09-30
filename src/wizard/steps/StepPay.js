@@ -1,6 +1,6 @@
 import { useEffect, useState } from '@wordpress/element';
 import { useOnboarding } from '../OnboardingProvider';
-import { initializePayment, verifyPayment } from '../../api/payments';
+import { initializePayment, verifyPayment, paymentStatus } from '../../api/payments';
 
 const PAYSTACK_SCRIPT = 'https://js.paystack.co/v1/inline.js';
 
@@ -35,25 +35,38 @@ export default function StepPay() {
 		);
 	}, [] );
 
-	// Resume an in-flight checkout: if a payment was initialized but the Paystack
-	// window closed (or the page reloaded) before the callback verified it, the
-	// reference is stored as `pendingRef`. Verify it once on mount — if it paid,
-	// advance; otherwise let the user pay again.
+	// On load, establish whether this site is already entitled.
+	//
+	// Ask the status endpoint FIRST: it answers "paid by any means" — including
+	// an EFT the Adbot admin verified against a different audit, or a payment
+	// made on adbot.co.za rather than here — which a reference-scoped verify
+	// cannot see. Only if it says no do we resolve an in-flight Paystack
+	// checkout whose inline callback never fired (popup closed, tab reload), so
+	// a genuinely-paid transaction isn't stranded as pending.
 	useEffect( () => {
-		if ( resumeChecked ) return;
-		const pendingRef = state?.pendingRef;
-		if ( ! pendingRef ) return;
+		if ( ! state || resumeChecked ) {
+			return;
+		}
 		setResumeChecked( true );
 		setVerifying( true );
-		verifyPayment( pendingRef )
+
+		const pendingRef = state.pendingRef;
+		paymentStatus()
+			.catch( () => null )
+			.then( ( res ) => {
+				if ( res && res.paid ) {
+					return res;
+				}
+				if ( ! pendingRef ) {
+					return null;
+				}
+				return verifyPayment( pendingRef ).catch( () => null );
+			} )
 			.then( ( res ) => {
 				if ( res && res.paid ) {
 					advance( 'apply' );
 				}
-			} )
-			.catch( () => {
-				// Not paid / transient failure — silently fall back to letting the
-				// user start the payment again. No scary error for an abandoned checkout.
+				/* otherwise not paid / abandoned — let the user pay again */
 			} )
 			.finally( () => setVerifying( false ) );
 	}, [ state, resumeChecked, advance ] );

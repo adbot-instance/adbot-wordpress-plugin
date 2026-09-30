@@ -8,10 +8,11 @@ use Adbot\Consent;
 use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
 use Adbot\Backend\Token_Store;
+use Adbot\Backend\Entitlement;
 
 class Onboarding_Controller extends REST_Controller {
 
-	private const OPTION = 'adbot_onboarding';
+	private const OPTION = Entitlement::OPTION;
 
 	private const STEPS = [
 		'welcome',
@@ -129,26 +130,18 @@ class Onboarding_Controller extends REST_Controller {
 
 	public function reset_state( WP_REST_Request $request ): WP_REST_Response {
 		delete_option( self::OPTION );
+		// A reset means "start the wizard over", so hold off the background
+		// entitlement reconcile — adopting the backend's paid state would jump
+		// the user straight back to the apply step. The flag is persisted rather
+		// than applied to this one response because the wizard refreshes its
+		// state immediately after resetting, and that GET would otherwise sync.
+		// resolve_state() lifts it again once the user reaches the pay step.
+		Entitlement::set_sync_suppressed( true );
 		return new WP_REST_Response( $this->resolve_state(), 200 );
 	}
 
 	private function read_state(): array {
-		$defaults = [
-			'step'           => 'welcome',
-			'completedSteps' => [],
-			'paid'           => false,
-			'auditId'        => '',
-			'entitlementRef' => '',
-			'skipped'        => false,
-			'pendingRef'     => '',
-		];
-
-		$stored = get_option( self::OPTION, [] );
-		if ( ! is_array( $stored ) ) {
-			$stored = [];
-		}
-
-		return array_merge( $defaults, $stored );
+		return Entitlement::read_state();
 	}
 
 	/**
@@ -195,6 +188,25 @@ class Onboarding_Controller extends REST_Controller {
 
 	private function resolve_state(): array {
 		$state = $this->read_state();
+		$order = array_flip( self::STEPS );
+
+		// A reset suppresses the reconcile below so it cannot undo the reset.
+		// Lift it once the user has walked back to the pay step: from there on
+		// "you have already paid" is the answer they want, and leaving the flag
+		// set would paywall a paying customer for good.
+		if ( ! empty( $state['syncSuppressed'] )
+			&& ( $order[ $state['step'] ] ?? 0 ) >= $order['pay'] ) {
+			Entitlement::set_sync_suppressed( false );
+			$state['syncSuppressed'] = false;
+		}
+
+		// An EFT verified by the Adbot admin is settled entirely server-side —
+		// nothing pushes it to this site. Reconcile here, not just on the pay
+		// step, so a paid customer never meets the paywall wherever they land.
+		// No-ops once paid or while suppressed, and rate-limited otherwise.
+		if ( Entitlement::sync( (string) ( $state['auditId'] ?? '' ) ) ) {
+			$state = $this->read_state();
+		}
 
 		$connected       = $this->is_google_connected();
 		$snippet_active  = (bool) get_option( 'adbot_snippet_active' );
@@ -211,6 +223,12 @@ class Onboarding_Controller extends REST_Controller {
 			$prune = [ 'connect', 'property', 'ga4', 'audit', 'report', 'pay', 'apply' ];
 		} elseif ( ! $snippet_active ) {
 			$prune = [ 'property', 'ga4', 'audit', 'report', 'pay', 'apply' ];
+		}
+		if ( $prune && ! empty( $state['paid'] ) ) {
+			// Payment is not a prerequisite of anything upstream — a disconnect
+			// does not un-buy it, and showing "Unlock fixes" to someone who has
+			// paid is exactly the bug this guards against.
+			$prune = array_values( array_diff( $prune, [ 'pay' ] ) );
 		}
 		if ( $prune ) {
 			$completed = array_values( array_diff( $completed, $prune ) );
@@ -229,7 +247,6 @@ class Onboarding_Controller extends REST_Controller {
 		// explicit navigation (including Back). If the user hasn't advanced past
 		// welcome but live state has progressed, bump them forward so they don't
 		// re-do earlier steps.
-		$order   = array_flip( self::STEPS );
 		$min     = $order[ $state['step'] ] ?? 0;
 		$is_init = in_array( $state['step'], [ 'welcome' ], true );
 
@@ -252,7 +269,11 @@ class Onboarding_Controller extends REST_Controller {
 		$state['containerId']     = $container_id;
 		$state['steps']           = self::STEPS;
 
-		// Persist any auto-adjusted completions/step pointer.
+		// Persist any auto-adjusted completions/step pointer. This is an explicit
+		// key list, so every key the rest of the plugin relies on has to appear:
+		// pendingRef (set by the payments controller) lets the pay step resume an
+		// in-flight checkout after a reload, and syncSuppressed is what keeps a
+		// wizard reset from being undone by the next state read.
 		update_option( self::OPTION, [
 			'step'           => $state['step'],
 			'completedSteps' => array_values( array_unique( $state['completedSteps'] ) ),
@@ -261,6 +282,7 @@ class Onboarding_Controller extends REST_Controller {
 			'entitlementRef' => (string) $state['entitlementRef'],
 			'skipped'        => (bool) $state['skipped'],
 			'pendingRef'     => (string) $state['pendingRef'],
+			'syncSuppressed' => ! empty( $state['syncSuppressed'] ),
 		], false );
 
 		return $state;

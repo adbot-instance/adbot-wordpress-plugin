@@ -6,11 +6,10 @@ use WP_REST_Request;
 use WP_REST_Response;
 use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
+use Adbot\Backend\Entitlement;
 use Adbot\Consent_Required_Exception;
 
 class Payments_Controller extends REST_Controller {
-
-	private const ONBOARDING_OPTION = 'adbot_onboarding';
 
 	public function register_routes(): void {
 		register_rest_route( $this->namespace, '/payments/initialize', [
@@ -31,6 +30,39 @@ class Payments_Controller extends REST_Controller {
 				],
 			],
 		] );
+
+		register_rest_route( $this->namespace, '/payments/status', [
+			'methods'             => 'GET',
+			'callback'            => [ $this, 'status' ],
+			'permission_callback' => [ $this, 'permission_callback' ],
+		] );
+	}
+
+	/**
+	 * Backend-side payment status for this site. Catches payments settled
+	 * outside the inline Paystack checkout — an EFT the Adbot admin verified
+	 * by hand, a charge booked against a different audit, or a purchase made
+	 * on adbot.co.za before the plugin was installed — and unlocks the wizard
+	 * the same way a verified Paystack charge does.
+	 */
+	public function status( WP_REST_Request $request ): WP_REST_Response {
+		try {
+			$state = $this->read_state();
+			$query = [];
+			if ( ! empty( $state['auditId'] ) ) {
+				$query['audit_id'] = (string) $state['auditId'];
+			}
+			$result = ( new Client() )->get( '/payments/status', $query );
+
+			Entitlement::apply_status( $result );
+
+			return new WP_REST_Response( $result, 200 );
+		} catch ( Consent_Required_Exception $e ) {
+			return $this->error_response( $e->getMessage(), 403 );
+		} catch ( Backend_Exception $e ) {
+			$this->log_exception( 'payments_status', $e );
+			return $this->backend_error( $e );
+		}
 	}
 
 	public function initialize( WP_REST_Request $request ): WP_REST_Response {
@@ -49,7 +81,7 @@ class Payments_Controller extends REST_Controller {
 
 			if ( ! empty( $result['reference'] ) ) {
 				$state['pendingRef'] = (string) $result['reference'];
-				update_option( self::ONBOARDING_OPTION, $state, false );
+				update_option( Entitlement::OPTION, $state, false );
 			}
 
 			return new WP_REST_Response( $result, 200 );
@@ -69,9 +101,7 @@ class Payments_Controller extends REST_Controller {
 				'reference' => $reference,
 			] );
 
-			if ( ! empty( $result['paid'] ) ) {
-				$this->mark_paid( $reference );
-			}
+			Entitlement::apply_status( $result, $reference );
 
 			return new WP_REST_Response( $result, 200 );
 		} catch ( Consent_Required_Exception $e ) {
@@ -82,34 +112,7 @@ class Payments_Controller extends REST_Controller {
 		}
 	}
 
-	private function mark_paid( string $reference ): void {
-		$state = $this->read_state();
-		if ( ! empty( $state['paid'] ) && ( $state['entitlementRef'] ?? '' ) === $reference ) {
-			return;
-		}
-		$state['paid']           = true;
-		$state['entitlementRef'] = $reference;
-		$state['step']           = 'apply';
-		if ( ! in_array( 'pay', $state['completedSteps'] ?? [], true ) ) {
-			$state['completedSteps'][] = 'pay';
-		}
-		update_option( self::ONBOARDING_OPTION, $state, false );
-	}
-
 	private function read_state(): array {
-		$defaults = [
-			'step'           => 'welcome',
-			'completedSteps' => [],
-			'paid'           => false,
-			'auditId'        => '',
-			'entitlementRef' => '',
-			'skipped'        => false,
-			'pendingRef'     => '',
-		];
-		$stored = get_option( self::ONBOARDING_OPTION, [] );
-		if ( ! is_array( $stored ) ) {
-			$stored = [];
-		}
-		return array_merge( $defaults, $stored );
+		return Entitlement::read_state();
 	}
 }
