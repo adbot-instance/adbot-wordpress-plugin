@@ -3,18 +3,18 @@ Contributors: keegankelly
 Tags: analytics, marketing, tag-manager, tracking, audit
 Requires at least: 6.0
 Tested up to: 6.9
-Stable tag: 1.0.12
+Stable tag: 1.0.13
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connect your Google marketing stack in one click. Inject a Google Tag Manager container and audit your tracking setup.
+Connect Google Tag Manager, GA4, Ads, and Search Console in one click, then audit your tracking setup from one WordPress screen.
 
 Source code and build tools: https://github.com/adbot-instance/adbot-wordpress-plugin
 
 == Description ==
 
-Adbot helps you connect and maintain your marketing measurement stack — Google Tag Manager, Google Analytics 4, Google Ads, and Google Search Console — from a single WordPress admin screen.
+Adbot helps you connect and maintain your marketing measurement stack from a single WordPress admin screen: Google Tag Manager, Google Analytics 4, Google Ads, and Google Search Console.
 
 Features:
 
@@ -30,12 +30,12 @@ This plugin sends data to third-party services to provide its functionality. **N
 
 The plugin communicates **only** with the Adbot Tracking backend service (`https://adbot-tracking-platform.vercel.app`). The same API will later be served from `https://tracking.adbot.co.za` when DNS is migrated; until then the plugin uses the Vercel deployment URL. The Adbot backend then relays authorized requests to the following services on your behalf:
 
-* **Adbot Tracking backend** (`https://adbot-tracking-platform.vercel.app/api/wp`) — the proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
-* **Google OAuth and Google APIs** (called server-side by the Adbot backend) — authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Ads, Search Console). Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
-* **Supabase** (called server-side by the Adbot backend) — stores the account linkage and encrypted OAuth tokens. Terms: https://supabase.com/terms · Privacy: https://supabase.com/privacy
-* **Paystack** (called server-side by the Adbot backend) — processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/za/terms · Privacy: https://paystack.com/za/terms?q=/privacy
+* **Adbot Tracking backend** (`https://adbot-tracking-platform.vercel.app/api/wp`). The proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
+* **Google OAuth and Google APIs** (called server-side by the Adbot backend). Authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Ads, Search Console). Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
+* **Supabase** (called server-side by the Adbot backend). Stores the account linkage and encrypted OAuth tokens. Terms: https://supabase.com/terms · Privacy: https://supabase.com/privacy
+* **Paystack** (called server-side by the Adbot backend). Processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/za/terms · Privacy: https://paystack.com/za/terms?q=/privacy
 
-Data sent from your WordPress site to the Adbot backend: site URL, site name, WordPress version, admin email (when the site first registers with the backend), and — per feature — the Google container you choose, the audit parameters you run, and the payment reference you verify. The WordPress site never sees, stores, or transmits your Google OAuth tokens directly; those live on the Adbot backend and are encrypted at rest.
+Data sent from your WordPress site to the Adbot backend: site URL, site name, WordPress version, admin email (when the site first registers with the backend), and, per feature, the Google container you choose, the audit parameters you run, and the payment reference you verify. The WordPress site never sees, stores, or transmits your Google OAuth tokens directly; those live on the Adbot backend and are encrypted at rest.
 
 == Installation ==
 
@@ -75,8 +75,8 @@ No. The plugin works out of the box. There are no secrets, API keys, OAuth clien
 
 Define either in `wp-config.php` (both optional):
 
-* `ADBOT_API_BASE` — point the plugin at a staging or alternate backend (defaults to `https://adbot-tracking-platform.vercel.app/api/wp`; omit trailing slash).
-* `ADBOT_DEBUG` — verbose error logging when `WP_DEBUG` is on.
+* `ADBOT_API_BASE`: point the plugin at a staging or alternate backend (defaults to `https://adbot-tracking-platform.vercel.app/api/wp`; omit trailing slash).
+* `ADBOT_DEBUG`: verbose error logging when `WP_DEBUG` is on.
 
 == Screenshots ==
 
@@ -85,6 +85,9 @@ Define either in `wp-config.php` (both optional):
 3. Audit results.
 
 == Changelog ==
+
+= 1.0.13 =
+* Improve: rewrote the plugin description and the External services notes in plainer sentences. No functional changes.
 
 = 1.0.12 =
 * New: payments settled outside the checkout now unlock the fixes step on their own. If you paid by EFT and the Adbot team verified it, or you bought on adbot.co.za before installing the plugin, the wizard recognises it — you no longer have to pay a second time.
@@ -133,6 +136,9 @@ Define either in `wp-config.php` (both optional):
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.13 =
+Documentation only. The plugin description and External services notes are clearer; nothing functional changed.
 
 = 1.0.12 =
 Payments made by EFT or on adbot.co.za now unlock the fixes step automatically, without paying again.
