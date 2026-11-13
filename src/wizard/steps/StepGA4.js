@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from '@wordpress/element';
 import { useOnboarding } from '../OnboardingProvider';
 import { getGA4Properties, selectGA4Property } from '../../api/ga4';
-import { initiateOAuth } from '../../api/auth';
+import { openOAuthPopup } from '../../lib/oauthPopup';
 import PropertySelector from '../../components/PropertySelector';
 
 function hostOf( url ) {
@@ -87,11 +87,7 @@ export default function StepGA4() {
 	const handleReconnect = async () => {
 		setError( null );
 		try {
-			const { url } = await initiateOAuth();
-			const popup = window.open( url, 'adbot-oauth', 'width=600,height=700' );
-			if ( ! popup ) {
-				window.location.href = url;
-			}
+			await openOAuthPopup();
 		} catch ( err ) {
 			setError( err.message || 'Failed to start Google sign-in' );
 		}

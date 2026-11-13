@@ -1259,6 +1259,12 @@
 	color: #00a32a;
 }
 
+// Non-blocking advice (e.g. Merchant Center feed warnings). Darker than the
+// #dba617 badge yellow so body text stays legible on white.
+.adbot-warning {
+	color: #996800;
+}
+
 .adbot-saved {
 	margin-left: 10px;
 	color: #00a32a;
@@ -1465,4 +1471,91 @@
 	padding: 10px 12px;
 	font-size: 12px;
 	color: #757575;
+}
+
+/* --- Channels: Search Console + Merchant Center cards ---------------------
+   Each card is an .adbot-connect__section (so it inherits the page's grid
+   rhythm) plus a border and header row borrowed from .adbot-status-card. The
+   .adbot-status--* modifier is reused verbatim, which is why the badge colours
+   above apply here with no duplication. */
+
+.adbot-channels {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: 1fr;
+}
+
+.adbot-channel-card {
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	background: #fff;
+	gap: 14px;
+}
+
+.adbot-channel-card__header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.adbot-channel-card__logo {
+	width: 32px;
+	height: 32px;
+	flex: 0 0 auto;
+	object-fit: contain;
+}
+
+.adbot-channel-card__title {
+	margin: 0;
+	font-size: 15px;
+	flex: 1 1 auto;
+}
+
+.adbot-channel-card__description {
+	margin: 0;
+	color: #50575e;
+	font-size: 13px;
+}
+
+.adbot-channel-card__detail {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 4px 12px;
+	font-size: 13px;
+	padding-top: 10px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.adbot-channel-card__detail-label {
+	color: #646970;
+	flex: 0 0 140px;
+}
+
+.adbot-channel-card__detail-value {
+	/* Feed URLs and property URLs are long and must not force the card wide. */
+	flex: 1 1 200px;
+	min-width: 0;
+	overflow-wrap: anywhere;
+	font-weight: 500;
+}
+
+.adbot-channel-card__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 4px;
+}
+
+/* The pickers inside a card sit tighter than they do mid-wizard, where they
+   are the whole screen. */
+.adbot-channel-card .adbot-container-picker {
+	margin: 0;
+}
+
+@media screen and (max-width: 600px) {
+	.adbot-channel-card__detail-label {
+		flex-basis: 100%;
+	}
 }

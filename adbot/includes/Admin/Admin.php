@@ -122,6 +122,7 @@ class Admin {
 				'ga4'   => esc_url_raw( $images_url . 'google-products/ga4-logo.svg' ),
 				'gads'  => esc_url_raw( $images_url . 'google-products/gads-logo.svg' ),
 				'gsc'   => esc_url_raw( $images_url . 'google-products/gsc-logo.svg' ),
+				'gmc'   => esc_url_raw( $images_url . 'google-products/gmc-logo.svg' ),
 			],
 		] );
 	}

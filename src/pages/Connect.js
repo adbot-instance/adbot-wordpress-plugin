@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { Notice, Modal, Button } from '@wordpress/components';
-import { getAuthStatus, initiateOAuth, disconnect } from '../api/auth';
+import { getAuthStatus, disconnect } from '../api/auth';
+import { openOAuthPopup } from '../lib/oauthPopup';
 import { installSnippet, uninstallSnippet } from '../api/settings';
 import ContainerSelector from '../components/ContainerSelector';
 import GoogleSignInButton from '../components/GoogleSignInButton';
@@ -42,12 +43,7 @@ export default function Connect() {
 		setConnecting( true );
 		setError( '' );
 		try {
-			const { url } = await initiateOAuth();
-			// Open OAuth in a popup.
-			const popup = window.open( url, 'adbot-oauth', 'width=600,height=700' );
-			if ( ! popup ) {
-				window.location.href = url;
-			}
+			await openOAuthPopup();
 		} catch ( err ) {
 			setError( err?.message ? String( err.message ) : String( err ) );
 		}

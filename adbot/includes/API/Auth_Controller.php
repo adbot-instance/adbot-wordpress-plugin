@@ -10,6 +10,8 @@ use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
 use Adbot\Backend\Token_Store;
 use Adbot\Backend\Site_Registration;
+use Adbot\Channels\Site_Verification;
+use Adbot\Channels\Sync;
 
 /**
  * Thin proxy to the Adbot backend for Google OAuth.
@@ -21,11 +23,47 @@ use Adbot\Backend\Site_Registration;
  */
 class Auth_Controller extends REST_Controller {
 
+	/**
+	 * Scope bundles the plugin may ask for on top of the base GTM/GA4 grant.
+	 * Mirrors WP_GOOGLE_SCOPE_SETS in the backend's lib/wp/google-oauth.ts —
+	 * the backend re-validates, so this list is UX, not the security boundary.
+	 */
+	public const SCOPE_SETS = [ 'gsc', 'gmc' ];
+
 	public function register_routes(): void {
 		register_rest_route( $this->namespace, '/auth/google', [
 			'methods'             => 'POST',
 			'callback'            => [ $this, 'initiate_oauth' ],
 			'permission_callback' => [ $this, 'permission_callback' ],
+			'args'                => [
+				// Opt-in scope bundles for the channel cards. Names only, matched
+				// against an allow-list here and again on the backend, so the UI
+				// can never widen its own Google grant to an arbitrary scope.
+				'scopes' => [
+					'type'              => 'array',
+					'items'             => [ 'type' => 'string' ],
+					'sanitize_callback' => function ( $value ) {
+						if ( ! is_array( $value ) ) {
+							return [];
+						}
+						return array_values( array_intersect(
+							array_map( 'sanitize_key', $value ),
+							self::SCOPE_SETS
+						) );
+					},
+					'validate_callback' => function ( $value ) {
+						if ( ! is_array( $value ) ) {
+							return false;
+						}
+						foreach ( $value as $set ) {
+							if ( ! is_string( $set ) || ! in_array( $set, self::SCOPE_SETS, true ) ) {
+								return false;
+							}
+						}
+						return true;
+					},
+				],
+			],
 		] );
 
 		register_rest_route( $this->namespace, '/auth/disconnect', [
@@ -58,10 +96,19 @@ class Auth_Controller extends REST_Controller {
 				( new Site_Registration() )->register_now();
 			}
 
-			$client = new Client();
-			$result = $client->post( '/auth/google/start', [
+			$body = [
 				'return_url' => admin_url( 'admin.php?page=adbot&connected=1' ),
-			] );
+			];
+
+			// Only send the key when bundles were asked for, so an ordinary
+			// connect keeps the exact request shape the backend has always seen.
+			$scopes = $request->get_param( 'scopes' );
+			if ( is_array( $scopes ) && ! empty( $scopes ) ) {
+				$body['scopes'] = array_values( $scopes );
+			}
+
+			$client = new Client();
+			$result = $client->post( '/auth/google/start', $body );
 
 			return new WP_REST_Response( [ 'url' => (string) ( $result['auth_url'] ?? '' ) ], 200 );
 		} catch ( Consent_Required_Exception $e ) {
@@ -90,6 +137,27 @@ class Auth_Controller extends REST_Controller {
 		delete_option( 'adbot_google_connected_last' );
 		delete_transient( 'adbot_containers' );
 
+		// Channel selections belong to the Google account that was just
+		// revoked, so they cannot be honoured any more. The ownership proof
+		// goes too: leaving the meta tag published would keep asserting a claim
+		// for an account this site is no longer connected to.
+		delete_option( GSC_Controller::OPTION_SITE_URL );
+		delete_option( GSC_Controller::OPTION_SITEMAP_URL );
+		delete_option( GSC_Controller::OPTION_SUBMITTED_AT );
+		delete_option( GSC_Controller::OPTION_VERIFIED_AT );
+		delete_option( GMC_Controller::OPTION_ACCOUNT_NAME );
+		delete_option( GMC_Controller::OPTION_ACCOUNT_LABEL );
+		delete_option( GMC_Controller::OPTION_CLAIMED_AT );
+		delete_option( GMC_Controller::OPTION_REGISTERED_AT );
+		delete_transient( 'adbot_gsc_sites' );
+		delete_transient( 'adbot_gmc_accounts' );
+		Site_Verification::clear();
+		Sync::clear();
+
+		// The feed token is deliberately KEPT. Rotating it on every disconnect
+		// would break a Merchant Center data source that the user may be about
+		// to reconnect, and the URL is not a credential for the Google account.
+
 		return new WP_REST_Response( [ 'disconnected' => true ], 200 );
 	}
 
@@ -110,6 +178,8 @@ class Auth_Controller extends REST_Controller {
 			return new WP_REST_Response( array_merge( [
 				'connected' => false,
 				'account'   => null,
+				'scopes'    => null,
+				'scopeSets' => [],
 			], $snippet ), 200 );
 		}
 
@@ -121,6 +191,8 @@ class Auth_Controller extends REST_Controller {
 			return new WP_REST_Response( array_merge( [
 				'connected' => false,
 				'account'   => null,
+				'scopes'    => null,
+				'scopeSets' => [],
 				'error'     => $e->getMessage(),
 			], $snippet ), 200 );
 		}

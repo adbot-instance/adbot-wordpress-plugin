@@ -11,6 +11,8 @@ use Adbot\API\Auth_Controller;
 use Adbot\API\Status_Controller;
 use Adbot\API\Containers_Controller;
 use Adbot\API\GA4_Controller;
+use Adbot\API\GSC_Controller;
+use Adbot\API\GMC_Controller;
 use Adbot\API\Audit_Controller;
 use Adbot\API\Setup_Controller;
 use Adbot\API\Snippet_Controller;
@@ -18,6 +20,9 @@ use Adbot\API\Settings_Controller;
 use Adbot\API\Onboarding_Controller;
 use Adbot\API\Payments_Controller;
 use Adbot\Tracking\Snippet_Injector;
+use Adbot\Channels\Site_Verification;
+use Adbot\Channels\Sync;
+use Adbot\Feed\Feed_Endpoint;
 use Adbot\Backend\Site_Registration;
 
 class Adbot {
@@ -36,6 +41,7 @@ class Adbot {
 		$this->load_admin();
 		$this->load_rest_api();
 		$this->load_tracking();
+		$this->load_channels();
 		$this->load_site_registration();
 
 		// One-time cache flush after a plugin version upgrade, in case an older
@@ -59,6 +65,12 @@ class Adbot {
 			return;
 		}
 		update_option( 'adbot_version', ADBOT_VERSION );
+
+		// The product feed's rewrite rule is registered on `init` but only
+		// lands in the cached rule set after a flush. A version change is the
+		// one moment we know the rule set may be stale — an install that
+		// upgrades into the feed feature would 404 on it otherwise.
+		Feed_Endpoint::flush_rules();
 
 		do_action( 'litespeed_purge_all' );
 		do_action( 'litespeed_purge_url', '/wp-json/adbot/v1/' );
@@ -157,6 +169,8 @@ class Adbot {
 			( new Status_Controller() )->register_routes();
 			( new Containers_Controller() )->register_routes();
 			( new GA4_Controller() )->register_routes();
+			( new GSC_Controller() )->register_routes();
+			( new GMC_Controller() )->register_routes();
 			( new Audit_Controller() )->register_routes();
 			( new Setup_Controller() )->register_routes();
 			( new Snippet_Controller() )->register_routes();
@@ -181,5 +195,18 @@ class Adbot {
 
 	private function load_tracking(): void {
 		new Snippet_Injector();
+	}
+
+	/**
+	 * Search Console / Merchant Center front-end surfaces.
+	 *
+	 * Both emit public output, so they load on every request rather than only
+	 * in wp-admin: Google fetches the verification tag from the site's head and
+	 * the product feed from its own URL.
+	 */
+	private function load_channels(): void {
+		new Site_Verification();
+		( new Feed_Endpoint() )->hook();
+		( new Sync() )->hook();
 	}
 }

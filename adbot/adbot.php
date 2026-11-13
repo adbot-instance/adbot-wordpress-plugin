@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Adbot Tracking Platform
- * Description: Connect Google Tag Manager, GA4, Ads, and Search Console in one click, then audit your tracking setup from one WordPress screen.
- * Version:     1.0.13
+ * Description: Connect Google Tag Manager, GA4, Search Console, and Merchant Center in one click, then audit your tracking setup from one WordPress screen.
+ * Version:     1.0.14
  * Author:      Adbot
  * Author URI:  https://adbot.co.za
  * License:     GPL-2.0-or-later
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ADBOT_VERSION', '1.0.13' );
+define( 'ADBOT_VERSION', '1.0.14' );
 define( 'ADBOT_PLUGIN_FILE', __FILE__ );
 define( 'ADBOT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ADBOT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

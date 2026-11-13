@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Connect from './pages/Connect';
+import Channels from './pages/Channels';
 import Audit from './pages/Audit';
 import Setup from './pages/Setup';
 import Settings from './pages/Settings';
@@ -69,6 +70,7 @@ if ( ! finishOAuthPopupReturn() ) {
 						<Route path="/" element={ <Layout /> }>
 							<Route index element={ <Dashboard /> } />
 							<Route path="connect" element={ <Connect /> } />
+							<Route path="channels" element={ <Channels /> } />
 							<Route path="audit" element={ <Audit /> } />
 							<Route path="setup" element={ <Setup /> } />
 							<Route path="settings" element={ <Settings /> } />

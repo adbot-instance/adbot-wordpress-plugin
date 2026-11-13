@@ -5,7 +5,9 @@ The plugin is a thin client. The Vercel backend owns Google OAuth client secret,
 - **Base URL:** `ADBOT_API_BASE` (default `https://adbot-tracking-platform.vercel.app/api/wp`, matching `Adbot\Backend\Client::DEFAULT_BASE`; planned migration to `https://tracking.adbot.co.za/api/wp`). Override via `define( 'ADBOT_API_BASE', '…' )` in `wp-config.php` (no trailing slash).
 - **Auth:** every request except `/sites/register` and `/sites/verify` carries `Authorization: Bearer <site_token>`. `site_token` is a per-site opaque string minted by the backend.
 - **Content type:** JSON, UTF-8.
-- **Errors:** non-2xx responses MUST return `{ "code": "<snake_case>", "message": "<human readable>", "details": { … } }`. The plugin surfaces `message` verbatim.
+- **Errors:** non-2xx responses MUST return `{ "code": "<snake_case>", "message": "<human readable>" }`. The plugin surfaces `message` verbatim.
+
+  > **Corrected 2026-09-30:** this previously documented a third `details` key. No route under `/api/wp` emits one (it exists only on non-WP routes such as `/api/demo-requests`), and the plugin has never read it. Codes in use: `unauthorized`, `invalid_request`, `invalid_site_url`, `google_not_connected` (409), `google_scope_required` (403), `google_api_error`, `payment_required` (402), `no_pending_challenge`, `challenge_expired`, `challenge_mismatch`, `verification_failed`, `verification_unreachable`.
 
 ## Site registration (first-use flow)
 
@@ -79,8 +81,28 @@ Optional. Weekly cron to refresh last-seen. Body: `{"plugin_version": "…", "wp
 
 Request:
 ```json
-{ "return_url": "https://example.com/wp-admin/admin.php?page=adbot" }
+{
+  "return_url": "https://example.com/wp-admin/admin.php?page=adbot",
+  "scopes":     ["gsc"]
+}
 ```
+
+`scopes` is optional and holds **scope-bundle names**, never raw Google scope
+strings — the plugin cannot widen its own grant. Bundles are defined in
+`lib/wp/google-oauth.ts` (`WP_GOOGLE_SCOPE_SETS`):
+
+| Bundle | Google scopes |
+|---|---|
+| `gsc` | `auth/webmasters`, `auth/siteverification` |
+| `gmc` | `auth/content`, `auth/siteverification` |
+
+Omitting `scopes` requests the base GTM/GA4/userinfo set only. The auth URL sets
+`include_granted_scopes: true`, so an incremental grant **extends** the existing
+one rather than replacing it — without that flag, granting Search Console would
+silently revoke Tag Manager.
+
+> `WP_GOOGLE_SCOPES` in the backend environment overrides only the **base** set.
+> Bundles are always appended, so setting that variable cannot disable a channel.
 Response 200:
 ```json
 { "auth_url": "https://adbot-tracking-platform.vercel.app/api/wp/auth/google/callback?state=…" }
@@ -107,10 +129,18 @@ Response 200:
 ```json
 {
   "connected": true,
-  "account":   { "id": "acct_…", "email": "…", "name": "…", "picture": "https://…" }
+  "account":   { "id": "acct_…", "email": "…", "name": "…", "picture": "https://…" },
+  "scopes":    "https://www.googleapis.com/auth/webmasters …",
+  "scopeSets": ["gsc"]
 }
 ```
-or `{ "connected": false, "account": null }`.
+or `{ "connected": false, "account": null, "scopes": null, "scopeSets": [] }`.
+
+`scopeSets` lists the bundles the stored token fully covers. The plugin reads it
+to render a channel card's picker straight away instead of provoking a 403 from
+Google to discover a missing scope. A bundle appears only when **every** scope in
+it is held — `webmasters` without `siteverification` cannot complete the verify
+flow, so reporting it would offer a picker that then fails.
 
 ### `POST /auth/disconnect`
 
@@ -153,6 +183,155 @@ Backend records the install in Supabase. The plugin injects the snippet locally 
 ### `POST /gtm/snippet/uninstall`
 
 Empty body. Response 200: `{ "uninstalled": true }`.
+
+## Google Search Console
+
+All routes require the `gsc` scope bundle. Persisted to `WpSite.config.gsc`
+(`{ siteUrl, permissionLevel, verifiedAt, sitemapUrl, sitemapSubmittedAt }`) —
+no migration; same untyped-blob precedent as `config.gtm`.
+
+Search Console identifies a URL-prefix property **with** a trailing slash
+(`https://example.com/`), which is the opposite of how `normalizeSiteUrl()` keys
+`WpSite.siteUrl`. Every call converts via `toPropertyUrl()`.
+
+### `GET /gsc/sites`
+
+Response 200:
+```json
+{
+  "sites": [
+    { "siteUrl": "https://example.com/", "permissionLevel": "siteOwner",
+      "verified": true, "isThisSite": true }
+  ],
+  "siteUrl":          "https://example.com/",
+  "thisSiteVerified": true
+}
+```
+
+`verified` comes from the Site Verification API, `permissionLevel` from Search
+Console; a property can be one without the other. `siteUnverifiedUser` means the
+account can see the property but not submit sitemaps, and the plugin disables it
+in the picker.
+
+### `POST /gsc/verify/token`
+
+Request `{ "site_url": "https://example.com/" }` (optional; defaults to the
+registered site). Response 200: `{ "method": "META", "token": "<opaque>", "site_url": "…" }`.
+
+Google returns the *whole* meta tag for the META method; the backend parses out
+the `content` value and returns only that, so the plugin never echoes
+backend-supplied HTML into a page. The plugin stores it in
+`adbot_site_verification_token` and renders the tag itself on `wp_head`.
+
+### `POST /gsc/verify`
+
+Call **after** the tag is live — Google fetches the site during this call.
+Response 200:
+```json
+{ "verified": true, "added": true, "add_error": null,
+  "site_url": "https://example.com/", "verified_at": "2026-09-30T…Z" }
+```
+
+Verification and `sites.add` are reported separately on purpose: verification is
+the part that can genuinely fail, and a verified property that was not yet added
+is recoverable on the next list, so `added: false` is a warning rather than an
+error.
+
+### `POST /gsc/select`
+
+Request `{ "site_url": "…", "permission_level": "siteOwner" }`. Bookkeeping only,
+no Google call — the mirror of `/ga4/select`. Response `{ "selected": true, "site_url": "…" }`.
+
+### `POST /gsc/sitemap`
+
+Request `{ "sitemap_url": "https://example.com/wp-sitemap.xml" }`. Rejects a
+sitemap on a different host than the property with a 400 before calling Google.
+Response 200: `{ "submitted": true, "sitemap_url": "…", "site_url": "…", "submitted_at": "…" }`.
+
+### `GET /gsc/sitemap`
+
+Response 200: `{ "site_url", "submitted_url", "submitted_at", "sitemaps": [ { "path", "lastSubmitted", "lastDownloaded", "isPending", "warnings", "errors" } ] }`.
+
+## Google Merchant Center
+
+All routes require the `gmc` scope bundle. Uses the **Merchant API**
+(`merchantapi` `accounts_v1` + `datasources_v1`), not Content API for Shopping
+v2.1. Persisted to `WpSite.config.gmc`
+(`{ accountName, accountId, accountLabel, homepageClaimedAt, dataSourceName, dataSourceId, feedUrl, registeredAt }`).
+
+### `GET /gmc/accounts`
+
+Response 200:
+```json
+{
+  "accounts": [
+    { "name": "accounts/123", "accountId": "123", "accountName": "My Store", "testAccount": false }
+  ],
+  "selected": "accounts/123"
+}
+```
+
+`accounts.list` already returns sub-accounts reachable through an advanced
+(multi-client) account, so there is no separate hierarchy walk.
+
+### `POST /gmc/select`
+
+Request `{ "account_name": "accounts/123" }`. Unlike `/ga4/select` this **does**
+call Google: the posted id is re-resolved against the accounts the token can
+reach, so a stale or hand-edited value can never point the feed at someone
+else's account. 404 `google_api_error` when it is not reachable.
+
+### `POST /gmc/claim`
+
+Claims the store website (`accounts/{id}/homepage:claim`). Requires the domain
+already verified — the same META proof the Search Console flow publishes, which
+is why that flow is built once and used twice. `overwrite` is deliberately not
+sent: silently taking a claim from another of the user's accounts is destructive
+and invisible, so a conflict surfaces as an error instead.
+
+Response 200: `{ "claimed": true, "account_name": "accounts/123", "claimed_at": "…" }`.
+
+### `POST /gmc/feed`
+
+Request:
+```json
+{
+  "feed_url":         "https://example.com/adbot-feed/<token>/products.xml",
+  "content_language": "en",
+  "feed_label":       "ZA",
+  "time_zone":        "Africa/Johannesburg"
+}
+```
+
+Creates or updates a `PrimaryProductDataSource` whose
+`fileInput.fetchSettings` points at the plugin-hosted feed with
+`frequency: FREQUENCY_DAILY`. Matched by `displayName` (`Adbot — <host>`) so a
+re-register updates the same source rather than creating a second one that would
+contend over the same products.
+
+`content_language` and `feed_label` are **required and immutable** on a
+file-input data source, so the plugin resolves them from the store (site locale
+and the WooCommerce base country) instead of the backend guessing. HTTPS is
+enforced: Merchant Center's `fetchSettings.username`/`password` are documented
+for SFTP only, so the feed is protected by an unguessable path token that must
+not travel in clear text.
+
+Response 200: `{ "registered": true, "data_source": { "name", "dataSourceId", "displayName", "fetchUri", "fetchEnabled" }, "registered_at": "…" }`.
+
+### `GET /gmc/feed`
+
+Response 200: `{ "registered", "account_name", "feed_url", "registered_at", "homepage_claimed_at", "data_source" }`, or `{ "registered": false, … "data_source": null }` before registration.
+
+### `POST /gmc/feed/fetch`
+
+Triggers an immediate fetch instead of waiting for the daily schedule, so the
+user sees items land rather than being told to come back tomorrow. Response 200:
+`{ "fetching": true, "data_source_name": "accounts/123/dataSources/456" }`.
+
+> **Product data never reaches this backend.** Google fetches the feed URL from
+> the WordPress site directly. Only the URL, the account and the data-source id
+> transit Adbot — a deliberately smaller data flow than a per-product push, and
+> the reason the hosted-fetch design was chosen.
 
 ## Audits
 
@@ -218,6 +397,23 @@ Backend pushes entitlement changes back to the site when Paystack webhook fires.
 - Plugin encrypts `site_token` at rest in `wp_options` using AES-256-GCM with a key derived from `AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, and `NONCE_KEY` via `hash_hmac( 'sha256', 'adbot-site-token-key-v1', $salts )` (see `Token_Store::key()`). No key shipped.
 - Backend verifies site ownership via the HTTP challenge-response on registration. A token is only minted after the verify callback succeeds.
 - All inbound webhooks are HMAC-signed.
+- Channel scopes are requested incrementally by **bundle name**. The plugin
+  allow-lists the names (`Auth_Controller::SCOPE_SETS`) and the backend
+  re-validates them against `WP_GOOGLE_SCOPE_SETS`, so the security boundary is
+  server-side and a modified plugin build cannot request an arbitrary scope.
+- The product feed is the plugin's only unauthenticated public endpoint besides
+  `/verify`. It is guarded by a 32-character alphanumeric path token compared
+  with `hash_equals` and served `X-Robots-Tag: noindex`. It is deliberately
+  **not** disallowed in `robots.txt`: Merchant Center's scheduled fetch obeys
+  `robots.txt` and would fail as "denied by robots.txt". An
+  unconfigured feed and a wrong token are indistinguishable (both 404). The
+  token is a capability URL, not a credential for the Google account, so it is
+  deliberately **kept** across a Google disconnect — rotating it would break a
+  Merchant Center data source the user may be about to reconnect.
+- The verification meta tag stays published after a successful claim: Google
+  re-checks periodically and drops ownership if it disappears, which would
+  silently break both the Search Console property and the Merchant Center claim.
+  It is removed only on disconnect.
 
 ## Plugin-side constants (all optional, for overrides only)
 

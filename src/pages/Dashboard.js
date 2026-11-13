@@ -5,7 +5,7 @@ import StatusCard from '../components/StatusCard';
 import GoogleSignInButton from '../components/GoogleSignInButton';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import { getStatus } from '../api/settings';
-import { initiateOAuth } from '../api/auth';
+import { openOAuthPopup } from '../lib/oauthPopup';
 
 function readLastAudit() {
 	try {
@@ -17,6 +17,70 @@ function readLastAudit() {
 	} catch ( e ) {
 		return null;
 	}
+}
+
+function shortDate( iso ) {
+	const date = new Date( iso );
+	return Number.isNaN( date.getTime() ) ? '' : date.toLocaleDateString();
+}
+
+function describeSearchConsole( status ) {
+	const site = status?.gscSiteUrl;
+	const submittedAt = status?.gscSitemapSubmittedAt;
+
+	if ( submittedAt ) {
+		return {
+			value: 'Sitemap sent',
+			status: 'success',
+			description: `${ site } · submitted ${ shortDate( submittedAt ) }`,
+		};
+	}
+	if ( site ) {
+		return {
+			value: 'Sitemap pending',
+			status: 'warning',
+			description: `${ site } · submit your sitemap from the Channels tab.`,
+		};
+	}
+	return {
+		value: 'Not connected',
+		status: 'neutral',
+		description:
+			'Connect Search Console from the Channels tab to send your sitemap to Google.',
+	};
+}
+
+function describeMerchantCenter( status ) {
+	if ( ! status?.wooActive ) {
+		// Not an error: most sites running this plugin are not stores.
+		return {
+			value: 'No store',
+			status: 'neutral',
+			description: 'Activate WooCommerce to publish products to Google Shopping.',
+		};
+	}
+	if ( status?.gmcFeedRegisteredAt ) {
+		return {
+			value: 'Feed live',
+			status: 'success',
+			description: `Google fetches your product feed daily · registered ${ shortDate(
+				status.gmcFeedRegisteredAt
+			) }`,
+		};
+	}
+	if ( status?.gmcAccountName ) {
+		return {
+			value: 'Feed pending',
+			status: 'warning',
+			description: 'Register your product feed from the Channels tab.',
+		};
+	}
+	return {
+		value: 'Not connected',
+		status: 'neutral',
+		description:
+			'Connect Merchant Center from the Channels tab to publish your products.',
+	};
 }
 
 export default function Dashboard() {
@@ -57,11 +121,7 @@ export default function Dashboard() {
 	const handleConnectGoogle = async () => {
 		setConnecting( true );
 		try {
-			const { url } = await initiateOAuth();
-			const popup = window.open( url, 'adbot-oauth', 'width=600,height=700' );
-			if ( ! popup ) {
-				window.location.href = url;
-			}
+			await openOAuthPopup();
 		} catch ( e ) {
 			// Error surfaces on next status poll / Connect wizard.
 		}
@@ -75,6 +135,11 @@ export default function Dashboard() {
 	const connected = status?.connected;
 	const snippetActive = status?.snippetActive;
 	const containerId = status?.snippetContainerId;
+	// Channel tiles. Values are resolved up front rather than inline: the
+	// three-way state (not connected / pending / live) reads far better as a
+	// short ladder than as a nested ternary inside JSX.
+	const gsc = describeSearchConsole( status );
+	const gmc = describeMerchantCenter( status );
 
 	return (
 		<div className="adbot-dashboard">
@@ -141,6 +206,20 @@ export default function Dashboard() {
 							? `Container ${ lastAudit.containerId || 'unknown' } · ${ new Date( lastAudit.at ).toLocaleString() }`
 							: 'Run an audit from the Audit tab to see your tracking health score here.'
 					}
+				/>
+
+				<StatusCard
+					title="Search Console"
+					value={ gsc.value }
+					status={ gsc.status }
+					description={ gsc.description }
+				/>
+
+				<StatusCard
+					title="Merchant Center"
+					value={ gmc.value }
+					status={ gmc.status }
+					description={ gmc.description }
 				/>
 
 				<StatusCard

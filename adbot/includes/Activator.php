@@ -31,6 +31,15 @@ class Activator {
 		// Mark the installed version.
 		update_option( 'adbot_version', ADBOT_VERSION );
 
+		// The product feed is served through a rewrite rule registered on
+		// `init`. Rules only take effect once flushed into the cached set, so
+		// without this the feed URL 404s until permalinks are next saved.
+		\Adbot\Feed\Feed_Endpoint::flush_rules();
+
+		// Daily refresh of the Search Console / Merchant Center statuses.
+		// No-ops on every request until a channel is actually connected.
+		\Adbot\Channels\Sync::schedule();
+
 		// Send the next admin request to the Adbot screen so the welcome wizard can load first.
 		set_transient( 'adbot_activation_redirect', '1', 120 );
 	}

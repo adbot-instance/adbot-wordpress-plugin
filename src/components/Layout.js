@@ -7,13 +7,14 @@ function getNavItems() {
 	return [
 		{ path: '/', label: __( 'Dashboard', 'adbot' ), icon: 'dashicons-dashboard' },
 		{ path: '/connect', label: __( 'Connect', 'adbot' ), icon: 'dashicons-admin-links' },
+		{ path: '/channels', label: __( 'Channels', 'adbot' ), icon: 'dashicons-share' },
 		{ path: '/audit', label: __( 'Audit', 'adbot' ), icon: 'dashicons-search' },
 		{ path: '/setup', label: __( 'Fix Issues', 'adbot' ), icon: 'dashicons-admin-tools' },
 		{ path: '/settings', label: __( 'Settings', 'adbot' ), icon: 'dashicons-admin-generic' },
 	];
 }
 
-const LOCKED_PATHS = [ '/connect', '/audit', '/setup', '/settings' ];
+const LOCKED_PATHS = [ '/connect', '/channels', '/audit', '/setup', '/settings' ];
 
 function getBrand() {
 	if ( typeof window === 'undefined' || ! window.adbotAdmin?.brand ) {

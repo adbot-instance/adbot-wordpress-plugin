@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 import { useOnboarding } from '../OnboardingProvider';
-import { getAuthStatus, initiateOAuth } from '../../api/auth';
+import { getAuthStatus } from '../../api/auth';
+import { openOAuthPopup } from '../../lib/oauthPopup';
 import GoogleSignInButton from '../../components/GoogleSignInButton';
 
 export default function StepConnect() {
@@ -98,18 +99,9 @@ export default function StepConnect() {
 		setConnecting( true );
 		setError( null );
 		try {
-			const { url } = await initiateOAuth();
-			const popup = window.open(
-				url,
-				'adbot-oauth',
-				'width=600,height=700'
-			);
-			popupRef.current = popup;
-			if ( ! popup ) {
-				// Popup blocked: fall back to a full-page redirect. We return to
-				// this page with the OAuth result params and the poll picks it up.
-				window.location.href = url;
-			}
+			// Blocked popups redirect the whole page instead; openOAuthPopup
+			// returns null in that case and this page is on its way out.
+			popupRef.current = await openOAuthPopup();
 		} catch ( err ) {
 			setError(
 				err.message || __( 'Failed to start Google sign-in', 'adbot' )

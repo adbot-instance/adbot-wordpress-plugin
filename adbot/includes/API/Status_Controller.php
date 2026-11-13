@@ -7,6 +7,9 @@ use WP_REST_Response;
 use Adbot\Backend\Client;
 use Adbot\Backend\Backend_Exception;
 use Adbot\Backend\Token_Store;
+use Adbot\Channels\Sitemap;
+use Adbot\Channels\Store;
+use Adbot\Feed\Feed_Endpoint;
 
 class Status_Controller extends REST_Controller {
 
@@ -25,14 +28,21 @@ class Status_Controller extends REST_Controller {
 		$snippet_external       = (bool) get_option( 'adbot_snippet_external_detected' );
 		$snippet_detection      = get_option( 'adbot_snippet_detection', null );
 
-		$connected = false;
-		$account   = null;
+		$sitemap_url = Sitemap::url();
+
+		$connected  = false;
+		$account    = null;
+		$scope_sets = [];
 
 		if ( '' !== Token_Store::get_site_token() ) {
 			try {
-				$result    = ( new Client() )->get( '/auth/status' );
-				$connected = (bool) ( $result['connected'] ?? false );
-				$account   = $result['account'] ?? null;
+				$result     = ( new Client() )->get( '/auth/status' );
+				$connected  = (bool) ( $result['connected'] ?? false );
+				$account    = $result['account'] ?? null;
+				// Which channel scope bundles the stored token already covers.
+				// Lets a card offer its picker straight away instead of having
+				// to provoke a 403 from Google to discover a missing scope.
+				$scope_sets = is_array( $result['scopeSets'] ?? null ) ? $result['scopeSets'] : [];
 			} catch ( Backend_Exception $e ) {
 				$this->log_exception( 'status', $e );
 			}
@@ -47,6 +57,24 @@ class Status_Controller extends REST_Controller {
 			'snippetExternalDetected' => $snippet_external,
 			'snippetDetection'        => $snippet_detection,
 			'ga4MeasurementId'        => (string) get_option( 'adbot_ga4_measurement_id', '' ),
+			'googleScopeSets'         => array_values( $scope_sets ),
+
+			// Search Console channel.
+			'gscSiteUrl'              => (string) get_option( GSC_Controller::OPTION_SITE_URL, '' ),
+			'gscVerifiedAt'           => (string) get_option( GSC_Controller::OPTION_VERIFIED_AT, '' ),
+			'gscSitemapUrl'           => (string) get_option( GSC_Controller::OPTION_SITEMAP_URL, '' ),
+			'gscSitemapSubmittedAt'   => (string) get_option( GSC_Controller::OPTION_SUBMITTED_AT, '' ),
+			'sitemapUrl'              => $sitemap_url,
+			'sitemapAvailable'        => '' !== $sitemap_url,
+
+			// Merchant Center channel.
+			'gmcAccountName'          => (string) get_option( GMC_Controller::OPTION_ACCOUNT_NAME, '' ),
+			'gmcAccountLabel'         => (string) get_option( GMC_Controller::OPTION_ACCOUNT_LABEL, '' ),
+			'gmcClaimedAt'            => (string) get_option( GMC_Controller::OPTION_CLAIMED_AT, '' ),
+			'gmcFeedRegisteredAt'     => (string) get_option( GMC_Controller::OPTION_REGISTERED_AT, '' ),
+			'wooActive'               => Store::is_woocommerce_active(),
+			'productFeedUrl'          => Feed_Endpoint::url(),
+
 			'siteUrl'              => get_site_url(),
 			'wpVersion'            => get_bloginfo( 'version' ),
 			'pluginVersion'        => ADBOT_VERSION,
