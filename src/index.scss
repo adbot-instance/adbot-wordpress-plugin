@@ -52,32 +52,142 @@
 /* Roboto: required by Google Sign in with Google custom-button typography guidelines. */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
+/*
+ * Adbot cross-product design tokens.
+ *
+ * Source of truth: adbot-tracking-platform app/globals.css + docs/design-system.md.
+ * The Shopify app maps the same values in its app/globals.css. Keep the hex
+ * values identical across all three; when one changes there, change it here.
+ * Rule: our brand (colour, ink, fonts, card shape, status tones), WordPress's
+ * chrome (admin menu, form controls, notices).
+ */
 :root {
-	/* Mirrors marketing site CSS vars (--accent, --foreground, etc.) */
 	--adbot-font-body: 'Karla', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	--adbot-font-display: 'P22 Mackinac Pro', Georgia, 'Times New Roman', serif;
 
+	/* Brand. Platform: accent / accent-dark / accent-light / secondary. */
 	--adbot-primary: #ff6900;
 	--adbot-primary-dark: #cc5400;
 	--adbot-primary-light: #ffe6d2;
-	--adbot-teal: #00baa7;
-	--adbot-secondary: #61a229;
+	--adbot-primary-tint: rgba(255, 105, 0, 0.1); /* accent/10: hover, focus ring, accent pill */
+	--adbot-secondary: #61a229; /* sparingly; never on buttons */
 
+	/* Ink steps. Platform: text-foreground, /70, /50, /40. */
 	--adbot-ink: #333333;
-	--adbot-ink-soft: #4a4a4a;
-	--adbot-muted: #6b6b6b;
-	--adbot-muted-light: #b2b2b3;
+	--adbot-ink-soft: rgba(51, 51, 51, 0.7);
+	--adbot-muted: rgba(51, 51, 51, 0.5);
+	--adbot-muted-light: rgba(51, 51, 51, 0.4);
 
+	/* Surfaces. Platform: card-border / card-bg / Panel. */
 	--adbot-border: #dedfe0;
+	--adbot-divider: rgba(51, 51, 51, 0.06); /* row separators inside a card */
 	--adbot-bg: #fafafa;
 	--adbot-white: #ffffff;
-	--adbot-radius: 10px;
-	--adbot-radius-lg: 16px;
+	--adbot-radius: 14px; /* rounded-xl: panels, cards, notices */
+	--adbot-radius-control: 8px; /* rounded-lg: buttons, inputs, option cards, rows */
+	--adbot-radius-lg: var(--adbot-radius); /* legacy alias */
+	--adbot-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* Panel shadow-sm */
 	--adbot-shadow: 0 8px 24px rgba(51, 51, 51, 0.08);
 	--adbot-shadow-lg: 0 20px 48px rgba(51, 51, 51, 0.12);
 
+	/* Status tones. Platform StatusBadge / lib/ui/status.ts (Tailwind green/amber/red/blue
+	   100 and 700, 500 for dots). Success and neutral match the Shopify app's tokens;
+	   it has no warning/danger/info tokens yet (it uses Polaris Badge tones). */
+	--adbot-success: #15803d;
+	--adbot-success-bg: #dcfce7;
+	--adbot-success-dot: #22c55e;
+	--adbot-warning: #b45309;
+	--adbot-warning-bg: #fef3c7;
+	--adbot-warning-dot: #f59e0b;
+	--adbot-danger: #b91c1c;
+	--adbot-danger-bg: #fee2e2;
+	--adbot-danger-dot: #ef4444;
+	--adbot-info: #1d4ed8;
+	--adbot-info-bg: #dbeafe;
+	--adbot-info-dot: #3b82f6;
+	/* Accent tone. Named -text (not --adbot-accent) because the Shopify app's
+	   --adbot-accent is the orange itself; this is the pill's text colour. */
+	--adbot-accent-text: var(--adbot-primary-dark);
+	--adbot-accent-bg: var(--adbot-primary-tint);
+	--adbot-neutral: rgba(51, 51, 51, 0.6);
+	--adbot-neutral-bg: rgba(51, 51, 51, 0.05);
+
+	/* Chart series, always in this order. Platform chart-1…5. */
+	--adbot-chart-1: #ff6900;
+	--adbot-chart-2: #2874fc;
+	--adbot-chart-3: #61a229;
+	--adbot-chart-4: #9333ea;
+	--adbot-chart-5: #e11d48;
+
 	/* Legacy alias used across older rules */
 	--adbot-font: var(--adbot-font-body);
+}
+
+/* ---------- Status pill (platform StatusBadge) ----------
+   Sentence case, 12px semibold, fully rounded. Never uppercase. */
+
+.adbot-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex: none;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	white-space: nowrap;
+	text-transform: none;
+	letter-spacing: 0;
+	color: var(--adbot-neutral);
+	background: var(--adbot-neutral-bg);
+}
+
+.adbot-pill__dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: currentColor;
+}
+
+.adbot-pill--success { color: var(--adbot-success); background: var(--adbot-success-bg); }
+.adbot-pill--success .adbot-pill__dot { background: var(--adbot-success-dot); }
+.adbot-pill--warning { color: var(--adbot-warning); background: var(--adbot-warning-bg); }
+.adbot-pill--warning .adbot-pill__dot { background: var(--adbot-warning-dot); }
+.adbot-pill--danger { color: var(--adbot-danger); background: var(--adbot-danger-bg); }
+.adbot-pill--danger .adbot-pill__dot { background: var(--adbot-danger-dot); }
+.adbot-pill--info { color: var(--adbot-info); background: var(--adbot-info-bg); }
+.adbot-pill--info .adbot-pill__dot { background: var(--adbot-info-dot); }
+.adbot-pill--accent { color: var(--adbot-accent-text); background: var(--adbot-accent-bg); }
+.adbot-pill--accent .adbot-pill__dot { background: var(--adbot-primary); }
+.adbot-pill--neutral { color: var(--adbot-neutral); background: var(--adbot-neutral-bg); }
+.adbot-pill--neutral .adbot-pill__dot { background: rgba(51, 51, 51, 0.3); }
+
+/* Page and section headings: Mackinac at weight 500 everywhere. */
+.adbot-page-title {
+	margin: 0;
+	font-family: var(--adbot-font-display);
+	font-size: 23px;
+	font-weight: 500;
+	line-height: 1.25;
+	color: var(--adbot-ink);
+}
+
+.adbot-section-title {
+	margin: 0 0 4px;
+	font-family: var(--adbot-font-display);
+	font-size: 18px;
+	font-weight: 500;
+	line-height: 1.3;
+	color: var(--adbot-ink);
+}
+
+.adbot-page-lede {
+	margin: 6px 0 0;
+	font-size: 14px;
+	line-height: 1.45;
+	color: var(--adbot-ink-soft);
+	max-width: 48rem;
 }
 
 .adbot-admin,
@@ -154,7 +264,7 @@
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, var(--adbot-primary), var(--adbot-teal));
+	background: var(--adbot-primary);
 }
 
 .adbot-wizard__brand-logo {
@@ -199,7 +309,7 @@
 	align-items: center;
 	gap: 12px;
 	padding: 10px 12px;
-	border-radius: 8px;
+	border-radius: var(--adbot-radius-control);
 	color: var(--adbot-muted);
 	font-size: 14px;
 }
@@ -232,8 +342,8 @@
 }
 
 .adbot-wizard__step.is-done .adbot-wizard__step-bullet {
-	background: #dcfce7;
-	color: #166534;
+	background: var(--adbot-success-bg);
+	color: var(--adbot-success);
 }
 
 .adbot-wizard__skip {
@@ -247,6 +357,16 @@
 	font-size: 13px;
 }
 .adbot-wizard__skip:hover { color: var(--adbot-ink); text-decoration: underline; }
+.adbot-wizard .adbot-wizard__skip:focus,
+.adbot-wizard .adbot-wizard__back:focus {
+	box-shadow: none;
+	outline: none;
+}
+.adbot-wizard .adbot-wizard__skip:focus-visible,
+.adbot-wizard .adbot-wizard__back:focus-visible {
+	border-radius: var(--adbot-radius-control);
+	box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+}
 
 .adbot-wizard__stage {
 	overflow-y: auto;
@@ -268,7 +388,7 @@
 	background: none;
 	border: 0;
 	padding: 6px 10px;
-	border-radius: 8px;
+	border-radius: var(--adbot-radius-control);
 	color: var(--adbot-muted);
 	cursor: pointer;
 	font-size: 13px;
@@ -362,7 +482,7 @@
 	padding: 12px 16px;
 	background: var(--adbot-white);
 	border: 1px solid var(--adbot-border);
-	border-radius: var(--adbot-radius);
+	border-radius: var(--adbot-radius-control);
 }
 
 .adbot-step__actions {
@@ -380,7 +500,7 @@
 	justify-content: center;
 	gap: 8px;
 	padding: 12px 20px;
-	border-radius: var(--adbot-radius);
+	border-radius: var(--adbot-radius-control);
 	font-size: 14px;
 	font-weight: 600;
 	cursor: pointer;
@@ -394,7 +514,7 @@
 	color: #fff;
 }
 .adbot-btn--primary:hover { background: var(--adbot-primary-dark); }
-.adbot-btn--primary:disabled { background: #94a3b8; cursor: not-allowed; }
+.adbot-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .adbot-btn--ghost {
 	background: transparent;
@@ -402,6 +522,11 @@
 	border-color: var(--adbot-border);
 }
 .adbot-btn--ghost:hover { background: var(--adbot-white); }
+.adbot-btn:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	border-color: var(--adbot-primary);
+}
 
 .adbot-btn--large { padding: 16px 28px; font-size: 16px; }
 
@@ -477,6 +602,7 @@
 	border: 1px solid var(--adbot-border);
 	border-radius: var(--adbot-radius);
 	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
 }
 .adbot-account-card img {
 	width: 40px;
@@ -536,7 +662,7 @@
 	color: var(--adbot-ink);
 	background: var(--adbot-white);
 	border: 1px solid var(--adbot-border);
-	border-radius: var(--adbot-radius);
+	border-radius: var(--adbot-radius-control);
 	transition: border-color 150ms ease, box-shadow 150ms ease;
 
 	&::placeholder {
@@ -545,7 +671,7 @@
 	&:focus {
 		outline: none;
 		border-color: var(--adbot-primary);
-		box-shadow: 0 0 0 3px var(--adbot-primary-light);
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
 	}
 	&:disabled {
 		opacity: 0.6;
@@ -605,7 +731,7 @@
 	text-align: left;
 	background: var(--adbot-white);
 	border: 1px solid var(--adbot-border);
-	border-radius: var(--adbot-radius);
+	border-radius: var(--adbot-radius-control);
 	cursor: pointer;
 	transition: border-color 150ms ease, box-shadow 150ms ease,
 		background 150ms ease;
@@ -617,7 +743,7 @@
 	&:focus-visible {
 		outline: none;
 		border-color: var(--adbot-primary);
-		box-shadow: 0 0 0 3px var(--adbot-primary-light);
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
 	}
 	&.is-selected {
 		border-color: var(--adbot-primary);
@@ -721,7 +847,7 @@
 	align-items: center;
 	gap: 12px;
 	padding: 12px 16px;
-	border-radius: var(--adbot-radius);
+	border-radius: var(--adbot-radius-control);
 	background: var(--adbot-white);
 	border: 1px solid var(--adbot-border);
 	color: var(--adbot-muted);
@@ -730,7 +856,7 @@
 .adbot-audit-progress__item.is-active {
 	color: var(--adbot-ink);
 	border-color: var(--adbot-primary);
-	box-shadow: 0 0 0 3px rgba(43, 92, 255, 0.12);
+	box-shadow: 0 0 0 3px var(--adbot-primary-tint);
 }
 .adbot-audit-progress__item.is-done { color: var(--adbot-ink-soft); }
 .adbot-audit-progress__marker {
@@ -750,9 +876,9 @@
 	animation: adbot-pulse 1.2s ease-in-out infinite;
 }
 .adbot-audit-progress__item.is-done .adbot-audit-progress__marker {
-	background: #dcfce7;
-	color: #166534;
-	border-color: #bbf7d0;
+	background: var(--adbot-success-bg);
+	color: var(--adbot-success);
+	border-color: var(--adbot-success-bg);
 }
 @keyframes adbot-pulse {
 	0%, 100% { transform: scale(1); }
@@ -807,6 +933,7 @@
 	border: 1px solid var(--adbot-border);
 	border-top: 3px solid var(--adbot-primary);
 	border-radius: var(--adbot-radius);
+	box-shadow: var(--adbot-shadow-sm);
 	padding: 16px;
 	text-align: center;
 }
@@ -912,13 +1039,13 @@
 	align-items: center;
 	gap: 10px;
 	padding: 10px 14px;
-	border-radius: 8px;
+	border-radius: var(--adbot-radius-control);
 	background: rgba(255, 255, 255, 0.6);
 	font-size: 13px;
 	color: var(--adbot-ink-soft);
 }
 .adbot-checklist__step.is-active {
-	background: #fff;
+	background: var(--adbot-white);
 	font-weight: 600;
 	color: var(--adbot-ink);
 }
@@ -936,8 +1063,8 @@
 	font-weight: 600;
 }
 .adbot-checklist__step.is-done .adbot-checklist__bullet {
-	background: #dcfce7;
-	color: #166534;
+	background: var(--adbot-success-bg);
+	color: var(--adbot-success);
 }
 .adbot-checklist__step.is-active .adbot-checklist__bullet {
 	background: var(--adbot-primary);
@@ -958,7 +1085,7 @@
 .adbot-admin__header {
 	margin-bottom: 24px;
 	padding-bottom: 18px;
-	border-bottom: 1px solid #c3c4c7;
+	border-bottom: 1px solid var(--adbot-border);
 }
 
 .adbot-admin__identity {
@@ -1016,12 +1143,24 @@
 	padding: 10px 12px;
 	text-decoration: none;
 	color: var(--adbot-ink);
-	border-radius: 4px;
+	border-radius: var(--adbot-radius-control);
 }
 
 .adbot-nav-item:hover {
-	background: rgba(255, 105, 0, 0.06);
+	background: var(--adbot-primary-tint);
 	color: var(--adbot-ink);
+}
+
+/* Beats wp-admin's blue `a:focus` ring; keep a brand ring for keyboard focus. */
+.adbot-admin .adbot-nav-item:focus,
+.adbot-admin .adbot-tabs__item:focus {
+	box-shadow: none;
+	outline: none;
+}
+
+.adbot-admin .adbot-nav-item:focus-visible,
+.adbot-admin .adbot-tabs__item:focus-visible {
+	box-shadow: 0 0 0 3px var(--adbot-primary-tint);
 }
 
 .adbot-nav-item--active {
@@ -1041,9 +1180,9 @@
 	min-width: 0;
 	background: var(--adbot-white);
 	border: 1px solid var(--adbot-border);
-	border-radius: 4px;
+	border-radius: var(--adbot-radius);
 	padding: 28px 36px 40px;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	box-shadow: var(--adbot-shadow-sm);
 }
 
 .adbot-admin .button.button-primary {
@@ -1058,6 +1197,42 @@
 	background: var(--adbot-primary-dark);
 	border-color: var(--adbot-primary-dark);
 	color: #fff;
+}
+
+/* WordPress buttons, re-tinted to the platform's button variants: our colours
+   on the host's control. Secondary = white, grey border, ink text. */
+.adbot-admin .button,
+.adbot-wizard .button {
+	border-radius: var(--adbot-radius-control);
+	font-family: inherit;
+	font-weight: 600;
+}
+
+.adbot-admin .button:not(.button-primary):not(.button-link),
+.adbot-wizard .button:not(.button-primary):not(.button-link) {
+	background: var(--adbot-white);
+	border-color: var(--adbot-border);
+	color: var(--adbot-ink);
+}
+
+.adbot-admin .button:not(.button-primary):not(.button-link):hover,
+.adbot-wizard .button:not(.button-primary):not(.button-link):hover {
+	background: var(--adbot-bg);
+	border-color: var(--adbot-muted-light);
+	color: var(--adbot-ink);
+}
+
+.adbot-admin .button:focus,
+.adbot-wizard .button:focus {
+	border-color: var(--adbot-primary);
+	box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	outline: none;
+}
+
+.adbot-admin .button:disabled,
+.adbot-admin .button[disabled] {
+	opacity: 0.4;
+	cursor: not-allowed;
 }
 
 .adbot-dashboard {
@@ -1095,22 +1270,6 @@
 	}
 }
 
-.adbot-dashboard__heading {
-	margin: 0;
-	font-family: var(--adbot-font-display);
-	font-size: 23px;
-	font-weight: 500;
-	line-height: 1.25;
-	color: var(--adbot-ink);
-}
-
-.adbot-dashboard__lede {
-	margin: 0;
-	font-size: 14px;
-	line-height: 1.45;
-	color: var(--adbot-muted);
-	max-width: 48rem;
-}
 
 .adbot-dashboard__cards {
 	display: grid;
@@ -1131,10 +1290,11 @@
 }
 
 .adbot-status-card {
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius);
 	padding: 18px 20px;
-	background: #fcfcfc;
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
 }
 
 .adbot-status-card__header {
@@ -1147,36 +1307,63 @@
 
 .adbot-status-card__header h3 {
 	margin: 0;
-	font-size: 14px;
+	font-family: var(--adbot-font-display);
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--adbot-ink);
 }
 
 .adbot-status-card__badge {
+	/* Same shape as .adbot-pill; the tone comes from the card's .adbot-status--* modifier. */
+	display: inline-flex;
+	align-items: center;
+	flex: none;
 	font-size: 12px;
 	font-weight: 600;
+	line-height: 1.5;
 	padding: 2px 8px;
 	border-radius: 999px;
-	background: #f0f0f1;
+	white-space: nowrap;
+	color: var(--adbot-neutral);
+	background: var(--adbot-neutral-bg);
 }
 
 .adbot-status-card__description {
 	margin: 0;
-	color: #50575e;
+	color: var(--adbot-ink-soft);
 	font-size: 13px;
 }
 
+/* Tone modifiers. `error` is this plugin's historical name for the danger tone. */
 .adbot-status--success .adbot-status-card__badge {
-	background: #edfaef;
-	color: #00a32a;
+	background: var(--adbot-success-bg);
+	color: var(--adbot-success);
 }
 
 .adbot-status--warning .adbot-status-card__badge {
-	background: #fcf9e8;
-	color: #996800;
+	background: var(--adbot-warning-bg);
+	color: var(--adbot-warning);
 }
 
-.adbot-status--error .adbot-status-card__badge {
-	background: #fcf0f1;
-	color: #d63638;
+.adbot-status--error .adbot-status-card__badge,
+.adbot-status--danger .adbot-status-card__badge {
+	background: var(--adbot-danger-bg);
+	color: var(--adbot-danger);
+}
+
+.adbot-status--info .adbot-status-card__badge {
+	background: var(--adbot-info-bg);
+	color: var(--adbot-info);
+}
+
+.adbot-status--accent .adbot-status-card__badge {
+	background: var(--adbot-accent-bg);
+	color: var(--adbot-accent-text);
+}
+
+.adbot-status--neutral .adbot-status-card__badge {
+	background: var(--adbot-neutral-bg);
+	color: var(--adbot-neutral);
 }
 
 .adbot-dashboard__actions {
@@ -1213,11 +1400,18 @@
 }
 
 .adbot-gap-card {
-	border-left: 4px solid #c3c4c7;
+	border: 1px solid var(--adbot-border);
+	border-left: 4px solid var(--adbot-neutral);
 	padding: 12px 16px;
-	background: #fcfcfc;
-	border-radius: 0 4px 4px 0;
+	background: var(--adbot-white);
+	border-radius: var(--adbot-radius-control);
 }
+
+.adbot-gap-card--danger { border-left-color: var(--adbot-danger-dot); }
+.adbot-gap-card--warning { border-left-color: var(--adbot-warning-dot); }
+.adbot-gap-card--accent { border-left-color: var(--adbot-primary); }
+.adbot-gap-card--info { border-left-color: var(--adbot-info-dot); }
+.adbot-gap-card--success { border-left-color: var(--adbot-success-dot); }
 
 .adbot-gap-card__header {
 	display: flex;
@@ -1229,20 +1423,12 @@
 .adbot-gap-card__header h4 {
 	margin: 0;
 	font-size: 14px;
-}
-
-.adbot-gap-card__severity {
-	font-size: 11px;
-	font-weight: 600;
-	padding: 2px 8px;
-	border-radius: 999px;
-	color: #fff;
-	white-space: nowrap;
+	color: var(--adbot-ink);
 }
 
 .adbot-gap-card__description {
 	margin: 0 0 4px;
-	color: #50575e;
+	color: var(--adbot-ink-soft);
 	font-size: 13px;
 }
 
@@ -1252,22 +1438,22 @@
 }
 
 .adbot-error {
-	color: #d63638;
+	color: var(--adbot-danger);
 }
 
 .adbot-success {
-	color: #00a32a;
+	color: var(--adbot-success);
 }
 
-// Non-blocking advice (e.g. Merchant Center feed warnings). Darker than the
-// #dba617 badge yellow so body text stays legible on white.
+// Non-blocking advice (e.g. Merchant Center feed warnings): the warning tone's
+// 700 step, which stays legible as body text on white.
 .adbot-warning {
-	color: #996800;
+	color: var(--adbot-warning);
 }
 
 .adbot-saved {
 	margin-left: 10px;
-	color: #00a32a;
+	color: var(--adbot-success);
 }
 
 .adbot-snippet-code {
@@ -1277,7 +1463,7 @@
 .adbot-snippet-code__note {
 	margin: 0 0 12px;
 	font-size: 13px;
-	color: #50575e;
+	color: var(--adbot-ink-soft);
 }
 
 .adbot-snippet-code__block {
@@ -1288,7 +1474,7 @@
 	margin-bottom: 6px;
 	font-size: 12px;
 	font-weight: 600;
-	color: #50575e;
+	color: var(--adbot-ink-soft);
 }
 
 .adbot-snippet-code__pre {
@@ -1296,8 +1482,8 @@
 	padding: 12px 14px;
 	max-width: 100%;
 	overflow-x: auto;
-	background: #1e1e1e;
-	border-radius: 6px;
+	background: #1e1e1e; /* code block: intentionally dark */
+	border-radius: var(--adbot-radius-control);
 	color: #e6e6e6;
 	font-family: Menlo, Consolas, Monaco, monospace;
 	font-size: 12px;
@@ -1314,17 +1500,7 @@
 }
 
 /* Onboarding report — issue list + severity badges + greenfield setup list */
-.adbot-sev-badge {
-	display: inline-block;
-	flex: none;
-	padding: 1px 8px;
-	border: 1px solid currentColor;
-	border-radius: 999px;
-	font-size: 11px;
-	font-weight: 600;
-	line-height: 1.6;
-	white-space: nowrap;
-}
+
 
 .adbot-report__issues {
 	margin-top: 20px;
@@ -1332,15 +1508,17 @@
 
 .adbot-report__issues-heading {
 	margin: 0 0 8px;
-	font-size: 14px;
+	font-family: var(--adbot-font-display);
+	font-size: 16px;
+	font-weight: 500;
 }
 
 .adbot-issue-list {
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius-control);
 	overflow: hidden;
 }
 
@@ -1350,7 +1528,7 @@
 	justify-content: space-between;
 	gap: 12px;
 	padding: 12px 14px;
-	border-bottom: 1px solid #f0f0f0;
+	border-bottom: 1px solid var(--adbot-divider);
 
 	&:last-child {
 		border-bottom: none;
@@ -1359,14 +1537,14 @@
 
 .adbot-issue-list__title {
 	font-size: 14px;
-	color: #1e1e1e;
+	color: var(--adbot-ink);
 }
 
 .adbot-setup-list__heading {
 	margin-bottom: 10px;
 	font-size: 14px;
 	font-weight: 600;
-	color: #1e1e1e;
+	color: var(--adbot-ink);
 }
 
 .adbot-setup-list {
@@ -1381,8 +1559,8 @@
 	gap: 10px;
 	padding: 9px 0;
 	font-size: 14px;
-	color: #1e1e1e;
-	border-bottom: 1px solid #f0f0f0;
+	color: var(--adbot-ink);
+	border-bottom: 1px solid var(--adbot-divider);
 
 	&:last-child {
 		border-bottom: none;
@@ -1393,7 +1571,7 @@
 	flex: none;
 	width: 16px;
 	height: 16px;
-	border: 2px solid #ff6900;
+	border: 2px solid var(--adbot-primary);
 	border-radius: 50%;
 }
 
@@ -1408,8 +1586,8 @@
 }
 
 .adbot-inventory__group {
-	border: 1px solid #e0e0e0;
-	border-radius: 8px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius-control);
 	overflow: hidden;
 }
 
@@ -1418,19 +1596,20 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 8px 12px;
-	background: #f6f7f7;
-	border-bottom: 1px solid #e0e0e0;
+	background: var(--adbot-bg);
+	border-bottom: 1px solid var(--adbot-border);
 	font-size: 13px;
 	font-weight: 600;
-	color: #1e1e1e;
+	color: var(--adbot-ink);
 }
 
 .adbot-inventory__count {
 	min-width: 22px;
 	padding: 0 6px;
 	border-radius: 999px;
-	background: #2271b1;
-	color: #fff;
+	background: var(--adbot-neutral-bg);
+	color: var(--adbot-neutral);
+	font-weight: 600;
 	font-size: 11px;
 	line-height: 18px;
 	text-align: center;
@@ -1449,7 +1628,7 @@
 	flex-direction: column;
 	gap: 2px;
 	padding: 7px 12px;
-	border-bottom: 1px solid #f3f3f3;
+	border-bottom: 1px solid var(--adbot-divider);
 
 	&:last-child {
 		border-bottom: none;
@@ -1458,19 +1637,19 @@
 
 .adbot-inventory__name {
 	font-size: 13px;
-	color: #1e1e1e;
+	color: var(--adbot-ink);
 	word-break: break-word;
 }
 
 .adbot-inventory__type {
 	font-size: 11px;
-	color: #757575;
+	color: var(--adbot-muted);
 }
 
 .adbot-inventory__empty {
 	padding: 10px 12px;
 	font-size: 12px;
-	color: #757575;
+	color: var(--adbot-muted);
 }
 
 /* --- Channels: Search Console + Merchant Center cards ---------------------
@@ -1486,10 +1665,11 @@
 }
 
 .adbot-channel-card {
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius);
 	padding: 20px;
-	background: #fff;
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
 	gap: 14px;
 }
 
@@ -1508,13 +1688,15 @@
 
 .adbot-channel-card__title {
 	margin: 0;
-	font-size: 15px;
+	font-family: var(--adbot-font-display);
+	font-weight: 500;
+	font-size: 16px;
 	flex: 1 1 auto;
 }
 
 .adbot-channel-card__description {
 	margin: 0;
-	color: #50575e;
+	color: var(--adbot-ink-soft);
 	font-size: 13px;
 }
 
@@ -1525,11 +1707,11 @@
 	gap: 4px 12px;
 	font-size: 13px;
 	padding-top: 10px;
-	border-top: 1px solid #f0f0f1;
+	border-top: 1px solid var(--adbot-divider);
 }
 
 .adbot-channel-card__detail-label {
-	color: #646970;
+	color: var(--adbot-muted);
 	flex: 0 0 140px;
 }
 
@@ -1557,5 +1739,684 @@
 @media screen and (max-width: 600px) {
 	.adbot-channel-card__detail-label {
 		flex-basis: 100%;
+	}
+}
+
+/* Report tiles take their top rule from the severity's status tone. */
+.adbot-report__tile--danger { border-top-color: var(--adbot-danger-dot); }
+.adbot-report__tile--warning { border-top-color: var(--adbot-warning-dot); }
+.adbot-report__tile--info { border-top-color: var(--adbot-info-dot); }
+.adbot-report__tile--accent { border-top-color: var(--adbot-primary); }
+.adbot-report__tile--success { border-top-color: var(--adbot-success-dot); }
+
+.adbot-score-gauge__label {
+	margin: 4px 0 0;
+	text-align: center;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--adbot-muted);
+}
+
+/* ---------- URL tabs (Tag Manager, Settings) ----------
+   Platform UrlTabs. The active tab gets the brand underline and a light
+   orange tint, never a solid fill, so the page's own primary action stays
+   the only solid orange in view. */
+
+.adbot-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	border-bottom: 1px solid var(--adbot-border);
+}
+
+.adbot-tabs__item {
+	position: relative;
+	margin-bottom: -1px;
+	padding: 8px 14px;
+	border-bottom: 2px solid transparent;
+	border-radius: var(--adbot-radius-control) var(--adbot-radius-control) 0 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--adbot-ink-soft);
+	text-decoration: none;
+
+	&:hover {
+		color: var(--adbot-ink);
+		background: var(--adbot-primary-tint);
+	}
+	&:focus {
+		box-shadow: none;
+		outline: none;
+	}
+	&:focus-visible {
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	}
+	&.is-active {
+		color: var(--adbot-primary-dark);
+		border-bottom-color: var(--adbot-primary);
+	}
+}
+
+/* Sub-headings inside a page: display font at weight 500, like every heading. */
+.adbot-admin__content h3,
+.adbot-admin__content h4 {
+	font-family: var(--adbot-font-display);
+	font-weight: 500;
+	color: var(--adbot-ink);
+}
+
+/* Links in the app body use the dark accent, like the other products. */
+.adbot-admin__content a:not(.adbot-btn):not(.button):not(.adbot-tabs__item) {
+	color: var(--adbot-primary-dark);
+}
+
+.adbot-admin__content a:not(.adbot-btn):not(.button):not(.adbot-tabs__item):focus {
+	box-shadow: 0 0 0 2px var(--adbot-primary-tint);
+}
+
+/* ---------- Sidebar: one item per Google service ---------- */
+
+.adbot-nav-item__logo {
+	width: 18px;
+	height: 18px;
+	object-fit: contain;
+	flex: none;
+}
+
+.adbot-admin__sidebar li.adbot-admin__nav-sep {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid var(--adbot-border);
+}
+
+/* ---------- Product page frame ---------- */
+
+.adbot-product {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.adbot-product__header {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+
+.adbot-product__logo {
+	width: 40px;
+	height: 40px;
+	object-fit: contain;
+	flex: none;
+}
+
+.adbot-product__icon {
+	width: 40px;
+	height: 40px;
+	font-size: 28px;
+	line-height: 40px;
+	text-align: center;
+	color: var(--adbot-ink-soft);
+	background: var(--adbot-neutral-bg);
+	border-radius: var(--adbot-radius-control);
+	flex: none;
+}
+
+.adbot-product__titles {
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.adbot-product__body,
+.adbot-product__tab {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+/* Panel surface for setup sections (platform Panel). */
+.adbot-card {
+	padding: 18px 20px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius);
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
+
+	h3 {
+		margin: 0 0 4px;
+		font-size: 16px;
+	}
+}
+
+.adbot-card__row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.adbot-card__meta {
+	display: block;
+	margin: 0;
+	font-size: 13px;
+	color: var(--adbot-muted);
+	overflow-wrap: anywhere;
+}
+
+/* ---------- Overview previews ---------- */
+
+.adbot-previews {
+	display: grid;
+	gap: 16px;
+	/* At most three per row (five services sit as 3 + 2), one per row on phones. */
+	grid-template-columns: repeat(auto-fill, minmax(max(280px, calc((100% - 32px) / 3)), 1fr));
+}
+
+.adbot-preview {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px 18px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius);
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
+
+	.dashicons {
+		width: 28px;
+		height: 28px;
+		font-size: 24px;
+		color: var(--adbot-ink-soft);
+	}
+}
+
+.adbot-preview__head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+
+	img {
+		object-fit: contain;
+		flex: none;
+	}
+}
+
+.adbot-preview__title {
+	flex: 1;
+	margin: 0;
+	font-family: var(--adbot-font-display);
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.adbot-preview__body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.adbot-admin__content .adbot-preview__link {
+	align-self: flex-start;
+	font-size: 13px;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.adbot-sparkline {
+	width: 100%;
+	height: 32px;
+}
+
+/* ---------- Stat tiles ---------- */
+
+.adbot-stats {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	margin: 0;
+}
+
+.adbot-stats--compact {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+}
+
+.adbot-stat {
+	margin: 0;
+	padding: 14px 16px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius-control);
+	background: var(--adbot-white);
+
+	dd {
+		margin: 0;
+	}
+}
+
+.adbot-stats--compact .adbot-stat {
+	padding: 0;
+	border: 0;
+}
+
+.adbot-stat__label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--adbot-muted);
+}
+
+.adbot-stat__value {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 2px;
+	font-size: 24px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--adbot-ink);
+	font-variant-numeric: tabular-nums;
+}
+
+.adbot-stats--compact .adbot-stat__value {
+	font-size: 20px;
+}
+
+.adbot-stats .adbot-stat__value--text {
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0;
+}
+
+.adbot-stat__badge {
+	font-size: 11px;
+}
+
+.adbot-stat__delta {
+	margin-top: 2px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.adbot-stat__delta--success { color: var(--adbot-success); }
+.adbot-stat__delta--danger { color: var(--adbot-danger); }
+.adbot-stat__delta--neutral { color: var(--adbot-muted); }
+
+.adbot-stat__period {
+	font-weight: 400;
+	color: var(--adbot-muted);
+}
+
+/* ---------- Insights panel ---------- */
+
+.adbot-insights {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.adbot-insights__bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.adbot-insights__filters {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.adbot-insights__account {
+	font-size: 13px;
+	color: var(--adbot-muted);
+}
+
+.adbot-insights__empty {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 16px 18px;
+	border: 1px dashed var(--adbot-border);
+	border-radius: var(--adbot-radius);
+
+	p {
+		margin: 0;
+		color: var(--adbot-ink-soft);
+	}
+}
+
+.adbot-insights__body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	transition: opacity 150ms ease;
+
+	&.is-loading {
+		opacity: 0.5;
+	}
+}
+
+.adbot-insights__grid {
+	display: grid;
+	gap: 16px;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.adbot-segmented {
+	display: inline-flex;
+	padding: 2px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius-control);
+	background: var(--adbot-white);
+}
+
+.adbot-segmented__item {
+	padding: 5px 10px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--adbot-ink-soft);
+	cursor: pointer;
+
+	&:hover {
+		color: var(--adbot-ink);
+	}
+
+	&.is-active {
+		background: var(--adbot-primary-light);
+		color: var(--adbot-primary-dark);
+	}
+
+	&:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	}
+
+	&:disabled {
+		cursor: default;
+	}
+}
+
+/* ---------- Charts (shared chart rules: chart-1…5 in order, one axis,
+   2px lines, hairline grid, legend for 2+ series, tooltip, table view) ---------- */
+
+.adbot-chart {
+	margin: 0;
+	padding: 16px 18px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius);
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow-sm);
+}
+
+.adbot-chart__head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+
+.adbot-chart__title {
+	flex: 1 1 auto;
+	font-family: var(--adbot-font-display);
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--adbot-ink);
+}
+
+.adbot-chart__unit {
+	font-size: 12px;
+	color: var(--adbot-muted);
+}
+
+.adbot-chart__legend {
+	display: flex;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		margin: 0;
+		font-size: 12px;
+		color: var(--adbot-ink-soft);
+	}
+}
+
+.adbot-chart__key {
+	display: inline-block;
+	width: 12px;
+	height: 3px;
+	border-radius: 2px;
+	flex: none;
+}
+
+.adbot-chart__toggle {
+	padding: 2px 6px;
+	border: 0;
+	background: none;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--adbot-primary-dark);
+	cursor: pointer;
+
+	&:focus-visible {
+		outline: none;
+		border-radius: 4px;
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	}
+}
+
+.adbot-chart__plot {
+	position: relative;
+
+	svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		overflow: visible;
+	}
+
+	svg:focus {
+		outline: none;
+	}
+
+	svg:focus-visible {
+		border-radius: 4px;
+		box-shadow: 0 0 0 3px var(--adbot-primary-tint);
+	}
+}
+
+.adbot-chart__grid {
+	stroke: var(--adbot-divider);
+	stroke-width: 1;
+}
+
+.adbot-chart__crosshair {
+	stroke: var(--adbot-muted-light);
+	stroke-width: 1;
+}
+
+.adbot-chart__tick {
+	font-size: 11px;
+	fill: var(--adbot-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.adbot-chart__tooltip {
+	position: absolute;
+	top: 8px;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 140px;
+	padding: 8px 10px;
+	border: 1px solid var(--adbot-border);
+	border-radius: var(--adbot-radius-control);
+	background: var(--adbot-white);
+	box-shadow: var(--adbot-shadow);
+	font-size: 12px;
+	color: var(--adbot-ink);
+	pointer-events: none;
+}
+
+.adbot-chart__tooltip-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+
+	b {
+		margin-left: auto;
+		padding-left: 12px;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.adbot-chart__note {
+	margin: 10px 0 0;
+	font-size: 12px;
+	color: var(--adbot-muted);
+}
+
+.adbot-chart__table-wrap {
+	max-height: 320px;
+	overflow: auto;
+}
+
+.adbot-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+
+	th,
+	td {
+		padding: 6px 8px;
+		border-bottom: 1px solid var(--adbot-divider);
+		text-align: left;
+	}
+
+	th {
+		position: sticky;
+		top: 0;
+		background: var(--adbot-white);
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--adbot-muted);
+	}
+
+	.is-num {
+		text-align: right;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.adbot-table__label {
+	max-width: 320px;
+	overflow-wrap: anywhere;
+}
+
+/* Breakdown bars: labelled, value printed at the bar end, thin marks. */
+.adbot-bars {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.adbot-bars__row {
+	display: grid;
+	grid-template-columns: minmax(0, 2fr) minmax(60px, 2fr) auto;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font-size: 13px;
+}
+
+.adbot-bars__label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--adbot-ink);
+}
+
+.adbot-bars__track {
+	height: 10px;
+}
+
+.adbot-bars__fill {
+	display: block;
+	height: 100%;
+	border-radius: 0 4px 4px 0;
+}
+
+.adbot-bars__value {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	color: var(--adbot-ink);
+	text-align: right;
+}
+
+.adbot-bars__share {
+	margin-left: 6px;
+	font-weight: 400;
+	color: var(--adbot-muted);
+}
+
+/* ---------- Settings → Connections ---------- */
+
+.adbot-service-list {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.adbot-service-list__item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	padding: 12px 0;
+	border-bottom: 1px solid var(--adbot-divider);
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	img {
+		object-fit: contain;
+		flex: none;
+	}
+
+	.dashicons {
+		color: var(--adbot-ink-soft);
+	}
+}
+
+.adbot-service-list__name {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.adbot-insights__body {
+		transition: none;
 	}
 }

@@ -94,7 +94,7 @@ export default function Settings() {
 
 	return (
 		<div className="adbot-settings">
-			<h2>{ __( 'Settings', 'adbot' ) }</h2>
+			<h3 className="adbot-section-title">{ __( 'General', 'adbot' ) }</h3>
 
 			{ error && (
 				<Notice status="error" isDismissible onRemove={ () => setError( '' ) }>

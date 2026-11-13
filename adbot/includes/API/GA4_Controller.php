@@ -41,6 +41,19 @@ class GA4_Controller extends REST_Controller {
 						return 1 === preg_match( '/^G-[A-Z0-9]+$/', (string) $value );
 					},
 				],
+				// Numeric GA4 property id and its name, for the Analytics charts.
+				// Optional so older callers (the wizard before 1.0.14) still work.
+				'propertyId'    => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+					'validate_callback' => function ( $value ) {
+						return '' === (string) $value || 1 === preg_match( '/^[0-9]+$/', (string) $value );
+					},
+				],
+				'propertyName'  => [
+					'type'              => 'string',
+					'sanitize_callback' => 'sanitize_text_field',
+				],
 			],
 		] );
 	}
@@ -72,6 +85,16 @@ class GA4_Controller extends REST_Controller {
 		$measurement_id = (string) $request->get_param( 'measurementId' );
 		update_option( 'adbot_ga4_measurement_id', $measurement_id );
 
-		return new WP_REST_Response( [ 'measurementId' => $measurement_id ], 200 );
+		$property_id = (string) $request->get_param( 'propertyId' );
+		if ( '' !== $property_id ) {
+			update_option( Insights_Controller::OPTION_GA4_PROPERTY_ID, $property_id, false );
+			update_option( Insights_Controller::OPTION_GA4_PROPERTY_NAME, (string) $request->get_param( 'propertyName' ), false );
+		}
+		Insights_Controller::flush( 'ga4' );
+
+		return new WP_REST_Response( [
+			'measurementId' => $measurement_id,
+			'propertyId'    => (string) get_option( Insights_Controller::OPTION_GA4_PROPERTY_ID, '' ),
+		], 200 );
 	}
 }

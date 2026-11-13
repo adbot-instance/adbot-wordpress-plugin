@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from '@wordpress/element';
 import { getStatus } from '../api/settings';
 
 /**
- * Mirrors Dashboard / Connect “Google connected” from REST `GET /status`.
+ * Mirrors Overview / Settings “Google connected” from REST `GET /status`.
  */
 export function useGoogleConnection() {
 	const [ connected, setConnected ] = useState( false );
@@ -19,7 +19,10 @@ export function useGoogleConnection() {
 				return data;
 			} )
 			.catch( () => {
-				setConnected( false );
+				// A failed status read (slow or busy backend) is not a
+				// disconnect. Keep the last known state so the nav lock in
+				// Layout does not bounce the user back to Overview mid-task;
+				// the initial state is still "not connected".
 				setLoading( false );
 				return null;
 			} );

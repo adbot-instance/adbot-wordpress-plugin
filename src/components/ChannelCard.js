@@ -1,21 +1,13 @@
 import { __ } from '@wordpress/i18n';
-
-// Maps the card state to the status colour class the stylesheet already
-// defines for StatusCard, so no new CSS is needed.
-const STATE_CLASSES = {
-	success: 'adbot-status--success',
-	warning: 'adbot-status--warning',
-	error: 'adbot-status--error',
-	neutral: 'adbot-status--neutral',
-};
+import { normalizeTone } from './StatusBadge';
 
 // A connectable Google surface: logo, state badge, explanation, actions.
 //
-// StatusCard is the dashboard tile and has no logo or action slot, so this is a
-// sibling rather than a fork of it. Styling reuses the existing
+// Styling reuses the existing
 // `.adbot-connect__section` / `.adbot-status--*` classes.
 //
-// Props: title, logoUrl, state ('success' | 'warning' | 'error' | 'neutral'),
+// Props: title, logoUrl, state (a shared status tone: 'success' | 'warning' |
+// 'danger' | 'info' | 'accent' | 'neutral'; legacy 'error' = danger),
 // stateLabel, description, children (body), actions (button row).
 export default function ChannelCard( {
 	title,
@@ -26,7 +18,7 @@ export default function ChannelCard( {
 	children,
 	actions,
 } ) {
-	const stateClass = STATE_CLASSES[ state ] || STATE_CLASSES.neutral;
+	const stateClass = `adbot-status--${ normalizeTone( state ) }`;
 
 	return (
 		<section className={ `adbot-connect__section adbot-channel-card ${ stateClass }` }>

@@ -3,13 +3,13 @@ import { useOnboarding } from '../OnboardingProvider';
 
 function getBrand() {
 	if ( typeof window === 'undefined' || ! window.adbotAdmin ) {
-		return { logoUrl: '', name: __( 'Tracking', 'adbot' ), tagline: '' };
+		return { logoUrl: '', name: __( 'Adbot', 'adbot' ), tagline: '' };
 	}
 	const admin = window.adbotAdmin;
 	const b = admin.brand || {};
 	return {
 		logoUrl: b.logoUrl || admin.images?.adbot || '',
-		name: b.name || __( 'Tracking', 'adbot' ),
+		name: b.name || __( 'Adbot', 'adbot' ),
 		tagline: b.tagline || '',
 	};
 }

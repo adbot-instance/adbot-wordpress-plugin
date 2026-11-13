@@ -1,28 +1,19 @@
-const SEVERITY_COLORS = {
-	critical: '#d63638',
-	warning: '#dba617',
-	info: '#ff6900',
-};
+import StatusBadge, { SEVERITY_TONE, toneFor } from './StatusBadge';
 
 const SEVERITY_LABELS = {
 	critical: 'Critical',
-	warning: 'Warning',
-	info: 'Info',
+	warning: 'Needs attention',
+	info: 'Suggested',
 };
 
 export default function GapCard( { gap } ) {
-	const color = SEVERITY_COLORS[ gap.severity ] || '#666';
+	const tone = toneFor( SEVERITY_TONE, gap.severity );
 	const label = SEVERITY_LABELS[ gap.severity ] || gap.severity;
 
 	return (
-		<div className="adbot-gap-card" style={ { borderLeftColor: color } }>
+		<div className={ `adbot-gap-card adbot-gap-card--${ tone }` }>
 			<div className="adbot-gap-card__header">
-				<span
-					className="adbot-gap-card__severity"
-					style={ { backgroundColor: color } }
-				>
-					{ label }
-				</span>
+				<StatusBadge tone={ tone }>{ label }</StatusBadge>
 				<h4>{ gap.title }</h4>
 			</div>
 			<p className="adbot-gap-card__description">{ gap.description }</p>

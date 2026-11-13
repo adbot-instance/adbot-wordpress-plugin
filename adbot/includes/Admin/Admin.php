@@ -109,10 +109,14 @@ class Admin {
 			'fixPrice'  => (int) ( defined( 'ADBOT_FIX_PRICE' ) ? ADBOT_FIX_PRICE : 4950 ),
 			'currency'  => (string) ( defined( 'ADBOT_FIX_CURRENCY' ) ? ADBOT_FIX_CURRENCY : 'ZAR' ),
 			'brand'     => [
-				'name'        => __( 'Tracking', 'adbot-tracking-platform' ),
-				'tagline'     => __( 'Automated Google Analytics and Tag Manager setup', 'adbot-tracking-platform' ),
+				// Matches the product name in the platform and Shopify app headers.
+				'name'        => __( 'Adbot', 'adbot-tracking-platform' ),
+				// Product-neutral on purpose: covers Tag Manager, Analytics, Search
+				// Console, Merchant Center and the Google services still to come,
+				// so it does not need rewording every time a channel ships.
+				'tagline'     => __( 'Set up and manage your Google marketing services in one place', 'adbot-tracking-platform' ),
 				/* translators: Logo image for screen readers. */
-				'logoAlt'     => __( 'Tracking setup logo', 'adbot-tracking-platform' ),
+				'logoAlt'     => __( 'Adbot logo', 'adbot-tracking-platform' ),
 				'logoUrl'     => esc_url_raw( $images_url . 'adbot/adbot.jpg' ),
 				'setupTitle'  => __( 'Tracking setup', 'adbot-tracking-platform' ),
 			],

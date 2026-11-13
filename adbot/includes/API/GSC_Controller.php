@@ -142,6 +142,7 @@ class GSC_Controller extends REST_Controller {
 		// and the backend's config can never disagree about trailing slashes.
 		$stored = (string) ( $result['site_url'] ?? $site_url );
 		update_option( self::OPTION_SITE_URL, $stored, false );
+		Insights_Controller::flush( 'gsc' );
 
 		return new WP_REST_Response( [ 'siteUrl' => $stored ], 200 );
 	}

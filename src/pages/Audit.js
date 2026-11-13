@@ -55,7 +55,7 @@ export default function Audit() {
 	if ( ! status?.connected ) {
 		return (
 			<div className="adbot-audit">
-				<h2>Tracking Audit</h2>
+				<h3 className="adbot-section-title">Tracking audit</h3>
 				<p>Connect your Google account first to run an audit.</p>
 			</div>
 		);
@@ -63,7 +63,7 @@ export default function Audit() {
 
 	return (
 		<div className="adbot-audit">
-			<h2>Tracking Audit</h2>
+			<h3 className="adbot-section-title">Tracking audit</h3>
 			<p>Audit your GTM container for tracking gaps and best-practice issues.</p>
 
 			{ ! selectedContainer && (
@@ -115,7 +115,7 @@ export default function Audit() {
 						</div>
 					</div>
 
-					<h3>Issues Found ({ auditResult.gaps?.length || 0 })</h3>
+					<h3>Issues found ({ auditResult.gaps?.length || 0 })</h3>
 
 					{ auditResult.gaps?.length === 0 && (
 						<p className="adbot-success">No issues found. Your tracking setup looks great!</p>
@@ -136,10 +136,10 @@ export default function Audit() {
 										containerPath: selectedContainer?.path,
 										containerId: selectedContainer?.containerId,
 									} ) );
-									window.location.hash = '#/setup';
+									window.location.hash = '#/tag-manager/fixes';
 								} }
 							>
-								Fix Issues Automatically
+								Fix issues automatically
 							</button>
 						</div>
 					) }

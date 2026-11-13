@@ -1,9 +1,14 @@
 import { createRoot } from '@wordpress/element';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Connect from './pages/Connect';
-import Channels from './pages/Channels';
+import Overview from './pages/Overview';
+import Analytics from './pages/Analytics';
+import TagManager, { TagManagerContainer } from './pages/TagManager';
+import SearchConsole from './pages/SearchConsole';
+import MerchantCenter from './pages/MerchantCenter';
+import BusinessProfile from './pages/BusinessProfile';
+import SettingsPage from './pages/SettingsPage';
+import Connections from './pages/Connections';
 import Audit from './pages/Audit';
 import Setup from './pages/Setup';
 import Settings from './pages/Settings';
@@ -68,12 +73,57 @@ if ( ! finishOAuthPopupReturn() ) {
 				<HashRouter>
 					<Routes>
 						<Route path="/" element={ <Layout /> }>
-							<Route index element={ <Dashboard /> } />
-							<Route path="connect" element={ <Connect /> } />
-							<Route path="channels" element={ <Channels /> } />
-							<Route path="audit" element={ <Audit /> } />
-							<Route path="setup" element={ <Setup /> } />
-							<Route path="settings" element={ <Settings /> } />
+							{ /* One menu item per Google service, matching the
+							   Shopify app: Overview, the five services, Settings. */ }
+							<Route index element={ <Overview /> } />
+							<Route path="analytics" element={ <Analytics /> } />
+							<Route
+								path="tag-manager"
+								element={ <TagManager /> }
+							>
+								<Route
+									index
+									element={ <TagManagerContainer /> }
+								/>
+								<Route path="audit" element={ <Audit /> } />
+								<Route path="fixes" element={ <Setup /> } />
+							</Route>
+							<Route
+								path="search-console"
+								element={ <SearchConsole /> }
+							/>
+							<Route
+								path="merchant-center"
+								element={ <MerchantCenter /> }
+							/>
+							<Route
+								path="business-profile"
+								element={ <BusinessProfile /> }
+							/>
+							<Route path="settings" element={ <SettingsPage /> }>
+								<Route index element={ <Connections /> } />
+								<Route
+									path="general"
+									element={ <Settings /> }
+								/>
+							</Route>
+							{ /* Screens from 1.0.13 and earlier, kept so old links land. */ }
+							<Route
+								path="connect"
+								element={ <Navigate to="/settings" replace /> }
+							/>
+							<Route
+								path="audit"
+								element={
+									<Navigate to="/tag-manager/audit" replace />
+								}
+							/>
+							<Route
+								path="setup"
+								element={
+									<Navigate to="/tag-manager/fixes" replace />
+								}
+							/>
 							<Route
 								path="*"
 								element={ <Navigate to="/" replace /> }

@@ -33,7 +33,7 @@ This plugin sends data to third-party services to provide its functionality. **N
 The plugin communicates **only** with the Adbot Tracking backend service (`https://adbot-tracking-platform.vercel.app`). The same API will later be served from `https://tracking.adbot.co.za` when DNS is migrated; until then the plugin uses the Vercel deployment URL. The Adbot backend then relays authorized requests to the following services on your behalf:
 
 * **Adbot Tracking backend** (`https://adbot-tracking-platform.vercel.app/api/wp`). The proxy/service your WordPress site talks to. Terms & privacy: https://adbot.co.za
-* **Google OAuth and Google APIs** (called server-side by the Adbot backend). Authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Search Console, Merchant Center, Site Verification). Search Console and Merchant Center access is requested separately, only when you open that card and grant it. Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
+* **Google OAuth and Google APIs** (called server-side by the Adbot backend). Authenticates and accesses the Google services you choose to connect (Tag Manager, Analytics, Search Console, Merchant Center, Site Verification). Search Console and Merchant Center access is requested separately, only when you set that service up. When you open a service's page or the Overview, the backend also reads that service's performance reports (GA4 traffic, Search Console clicks and impressions, Merchant Center product status) for the property or account you chose, to draw the charts; these numbers are cached briefly and not stored. Terms: https://policies.google.com/terms · Privacy: https://policies.google.com/privacy
 * **Supabase** (called server-side by the Adbot backend). Stores the account linkage and encrypted OAuth tokens. Terms: https://supabase.com/terms · Privacy: https://supabase.com/privacy
 * **Paystack** (called server-side by the Adbot backend). Processes payments if you enable the paid audit-apply feature. Terms: https://paystack.com/za/terms · Privacy: https://paystack.com/za/terms?q=/privacy
 
@@ -83,11 +83,11 @@ The plugin submits WordPress's own sitemap (`/wp-sitemap.xml`). SEO plugins such
 
 = Why does Google ask for permission twice? =
 
-Search Console and Merchant Center are requested separately, and only when you open the matching card on the Channels screen. A site that only wants tag tracking is never asked for access to its Search Console data or its product catalogue. If you connected Google before these features existed, your existing connection keeps working and each card offers a one-time "Grant access" button.
+Search Console and Merchant Center are requested separately, and only when you set it up on its page (Adbot → Search Console or Adbot → Merchant Center). A site that only wants tag tracking is never asked for access to its Search Console data or its product catalogue. If you connected Google before these features existed, your existing connection keeps working and each card offers a one-time "Grant access" button.
 
 = How do I revoke Google access? =
 
-Click "Disconnect" on the Adbot Connect tab. This removes the stored account link on the Adbot backend and clears local references. You can also revoke access at https://myaccount.google.com/permissions.
+Click "Disconnect" under Adbot → Settings → Connections. This removes the stored account link on the Adbot backend and clears local references. You can also revoke access at https://myaccount.google.com/permissions.
 
 = How do I cancel a Paystack payment or get my data removed? =
 
@@ -115,7 +115,12 @@ Define either in `wp-config.php` (both optional):
 = 1.0.14 =
 * New: Google Search Console. Adbot confirms you own the site (by publishing Google's verification tag for you), adds the property, and submits your WordPress sitemap — with a clear explanation when another SEO plugin has taken sitemaps over.
 * New: Google Merchant Center for WooCommerce stores. Adbot publishes a product feed on your own site and registers it in Merchant Center as a daily scheduled fetch, including variations, sale prices (with their scheduled start and end dates, so Google switches the price on time), brands, GTINs and stock status. The Merchant Center card warns when your shop shows prices excluding tax in a country where Google requires tax-inclusive prices. Developers can set each product's condition with the `adbot_product_feed_condition` filter. Your product data goes straight from your site to Google and never passes through Adbot.
-* New: a Channels screen for both, plus Search Console and Merchant Center tiles on the dashboard.
+* New: a page for each Google service — Analytics, Tag Manager, Search Console, Merchant Center and Business Profile (coming soon) — between Overview and Settings in the Adbot menu. Analytics, Search Console and Merchant Center pages show performance charts for the last 7, 28 or 90 days once that service is set up.
+* New: the Overview shows a preview of every Google service: its status, headline numbers and a 28-day trend.
+* Improve: Tag Manager holds the container, the tracking audit and the fixes as tabs. Settings → Connections shows your Google account and what is connected for each service. Old links to the Connect, Audit and Fix Issues screens still open the right place.
+* Improve: the admin now matches the Adbot web app and Shopify app: colours, card shapes, status labels and headings follow the shared Adbot design system.
+* Improve: the GTM container list waits longer for Google and is kept for 30 minutes, so accounts with many containers are less likely to time out.
+* Fix: a slow or failed status check no longer sends you back to the Overview while you are working on another screen.
 * Improve: Search Console and Merchant Center permissions are requested only when you open that card, so connecting Google for tag tracking no longer asks for access you are not using. Existing connections keep working and are offered a one-time grant.
 * Fix: uninstalling now removes several settings the plugin had been leaving behind in the database, including your selected GA4 measurement ID and snippet-detection results.
 

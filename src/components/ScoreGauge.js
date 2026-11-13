@@ -1,7 +1,16 @@
+import { scoreTone } from './StatusBadge';
+
+// Stroke and number colour come from the shared status tone tokens
+// (--adbot-success / --adbot-warning / --adbot-danger), so the gauge matches
+// status pills here and in the other Adbot products.
+const TONE_VAR = {
+	success: 'var(--adbot-success-dot)',
+	warning: 'var(--adbot-warning-dot)',
+	danger: 'var(--adbot-danger-dot)',
+};
+
 export default function ScoreGauge( { score } ) {
-	const color = score >= 80 ? '#00a32a'
-		: score >= 50 ? '#dba617'
-		: '#d63638';
+	const color = TONE_VAR[ scoreTone( score ) ];
 
 	const circumference = 2 * Math.PI * 45;
 	const offset = circumference - ( score / 100 ) * circumference;
@@ -14,7 +23,7 @@ export default function ScoreGauge( { score } ) {
 					cy="60"
 					r="45"
 					fill="none"
-					stroke="#e0e0e0"
+					stroke="var(--adbot-border)"
 					strokeWidth="10"
 				/>
 				<circle
@@ -36,12 +45,12 @@ export default function ScoreGauge( { score } ) {
 					dominantBaseline="central"
 					fontSize="28"
 					fontWeight="bold"
-					fill={ color }
+					fill="var(--adbot-ink)"
 				>
 					{ score }
 				</text>
 			</svg>
-			<p className="adbot-score-gauge__label">Health Score</p>
+			<p className="adbot-score-gauge__label">Health score</p>
 		</div>
 	);
 }

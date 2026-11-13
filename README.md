@@ -1,7 +1,7 @@
 # Adbot Tracking Platform — WordPress plugin
 
 [![Plugin](https://img.shields.io/badge/wordpress.org-adbot--tracking--platform-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://wordpress.org/plugins/adbot-tracking-platform/)
+[![Version](https://img.shields.io/badge/version-1.0.14-blue.svg)](https://wordpress.org/plugins/adbot-tracking-platform/)
 [![Requires WP](https://img.shields.io/badge/WordPress-6.0%2B-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
 [![Tested up to](https://img.shields.io/badge/tested%20up%20to-6.9.4-21759B.svg?logo=wordpress&logoColor=white)](https://wordpress.org/plugins/adbot-tracking-platform/)
 [![Requires PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4.svg?logo=php&logoColor=white)](https://www.php.net/)
@@ -10,7 +10,7 @@
 [![SVN](https://img.shields.io/badge/SVN-plugins.svn.wordpress.org-orange.svg?logo=subversion&logoColor=white)](https://plugins.svn.wordpress.org/adbot-tracking-platform/)
 [![Tags](https://img.shields.io/badge/tags-analytics%20%C2%B7%20audit%20%C2%B7%20marketing%20%C2%B7%20tag--manager%20%C2%B7%20tracking-lightgrey.svg)](https://wordpress.org/plugins/adbot-tracking-platform/)
 
-A WordPress admin plugin that connects your Google marketing stack — **Google Tag Manager, Google Analytics 4, Google Ads, and Google Search Console** — through a hosted backend. It can inject a GTM container snippet, run tracking audits, and (with entitlement) apply audit fixes via the Google Tag Manager API.
+A WordPress admin plugin to set up and manage your Google marketing services in one place: **Google Tag Manager, Google Analytics 4, Google Search Console and Google Merchant Center**, through a hosted backend. It can inject a GTM container snippet, run tracking audits and (with entitlement) apply audit fixes through the Google Tag Manager API. It can also verify the site and submit its sitemap in Search Console, and publish a WooCommerce product feed to Merchant Center.
 
 > This repository is the **public source** for the plugin published on the WordPress.org Plugin Directory as `adbot-tracking-platform`. It also satisfies WordPress.org Guideline 1 (public, maintained access to source code and build tools).
 
@@ -75,6 +75,45 @@ npm run lint:js
 npm run lint:css
 ```
 
+## Branching and releases
+
+Each release is developed on its own branch, cut from `staging`.
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | The released plugin, matching what is published on WordPress.org. |
+| `staging` | Integration branch. Every new release branch starts from here. |
+| `<version>-release` | One branch per release, e.g. `1.0.14-release`, `1.0.15-release`. All work for that version is committed here. |
+
+Versions increase by patch number (`1.0.14` → `1.0.15` → `1.0.16` …) unless a release calls for a bigger step.
+
+### Starting the next release
+
+Once the current release is finished, branch the next one off `staging`:
+
+```bash
+git checkout staging
+git pull
+git checkout -b 1.0.15-release
+git push -u origin 1.0.15-release
+```
+
+Then bump the version in every place it appears, in the first commit on the branch:
+
+| File | What to change |
+|------|----------------|
+| `adbot/adbot.php` | The `Version:` header **and** the `ADBOT_VERSION` constant. |
+| `adbot/readme.txt` | `Stable tag:`, plus a new `= x.y.z =` entry at the top of `== Changelog ==`. |
+| `README.md` | The version badge at the top of this file. |
+
+The plugin compares `ADBOT_VERSION` with the stored `adbot_version` option to run its one-time upgrade steps (cache purge, rewrite-rule flush), so the constant must change with every release.
+
+### Finishing a release
+
+1. Merge the release branch into `staging` and test it there.
+2. Merge `staging` into `main`.
+3. Build the ZIP from `main` (see below) and publish it to WordPress.org SVN under the new version tag.
+
 ## Building the release ZIP
 
 From the repository root:
@@ -128,4 +167,4 @@ Released under the [GNU General Public License v2.0 or later](https://www.gnu.or
 
 ## Trademarks
 
-"Adbot" and the Adbot logo are © Adbot. Google product names and logos (Tag Manager, Google Analytics, Google Ads, Google Search Console) are trademarks of Google LLC, used for identification purposes in accordance with Google's brand guidelines.
+"Adbot" and the Adbot logo are © Adbot. Google product names and logos (Tag Manager, Google Analytics, Google Search Console, Google Merchant Center) are trademarks of Google LLC, used for identification purposes in accordance with Google's brand guidelines.

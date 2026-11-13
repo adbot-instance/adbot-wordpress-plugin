@@ -26,9 +26,9 @@ repository, which is not in this repo. Check it before pasting.
 > take up to about 10 days. Until approval, users who click *Grant Search
 > Console access* / *Grant Merchant Center access* will see the unverified-app
 > warning. Either hold the 1.0.14 release until approval, or ship it knowing the
-> two Channel cards show that warning in the meantime. Nothing else in the
-> plugin (GTM/GA4 connect, audit, payments) is affected, because the new scopes
-> are only requested from the Channels screen.
+> Search Console and Merchant Center pages show that warning in the meantime.
+> Nothing else in the plugin (GTM/GA4 connect, audit, payments) is affected,
+> because the new scopes are only requested from those two pages.
 
 > **Tier check.** Before submitting, open Google Auth Platform → **Data Access**,
 > add the three scopes, and confirm which table each lands in (sensitive or
@@ -42,10 +42,13 @@ repository, which is not in this repo. Check it before pasting.
 
 Adbot is a WordPress plugin with a hosted backend. A site owner connects their
 Google account once, during the plugin's setup (the wizard's Connect step), for
-Tag Manager and GA4; the **Connect** screen then shows and manages that
-connection. Release 1.0.14 adds a **Channels** screen (`src/pages/Channels.js`) with
-two optional cards. Each card asks for its own permission the first time it is
-used, and only when it is used:
+Tag Manager and GA4; **Settings → Connections** then shows and manages that
+connection. Release 1.0.14 gives each Google service its own page in the plugin
+menu (Analytics, Tag Manager, Search Console, Merchant Center, Business
+Profile). The **Search Console** page (`src/pages/SearchConsole.js`) and the
+**Merchant Center** page (`src/pages/MerchantCenter.js`) each start with a setup
+card that asks for its own permission the first time it is used, and only when
+it is used:
 
 1. **Google Search Console** (`src/channels/SearchConsoleChannel.js`). Proves the
    user owns the WordPress site by publishing Google's site-verification meta
@@ -62,6 +65,15 @@ The plugin never holds Google credentials. Every Google API call is made
 server-side by the Adbot backend with the user's encrypted refresh token. The
 WordPress plugin only talks to the Adbot backend (`Adbot\Backend\Client`).
 
+**New in this release: performance charts.** Each service page also shows
+read-only performance for the property or account the site owner chose:
+GA4 reports (`analytics.readonly`, already verified for this app), Search
+Console search analytics (`webmasters`) and Merchant Center product status and
+performance (`content`). These reads use the same grants as the setup features,
+are made only when the owner opens a page, are cached briefly and are never
+stored long term. **Because GA4 reporting is a new use of an already verified
+scope, update the app's verification details for `analytics.readonly` too.**
+
 **Product data never transits Adbot.** Google fetches the feed directly from the
 merchant's WordPress site. Adbot sends Google only the feed URL, the account id
 and the feed settings (language, country label, time zone).
@@ -75,19 +87,26 @@ wording in sync with the demo video.
 
 ### `auth/webmasters`
 
-> **Feature:** "Google Search Console" card on the Adbot plugin's Channels
+> **Feature:** "Google Search Console" setup card on the Adbot plugin's Search Console page
 > screen in WordPress admin. The site owner clicks "Grant Search Console
 > access", then "Verify this site", picks the Search Console property, and
 > clicks "Submit sitemap". Adbot then shows the property, the sitemap URL and
-> when it was last submitted, on the card and on the plugin dashboard.
+> when it was last submitted, on the card and on the plugin Overview. Below the
+> setup card, the same page charts the property's search performance for the
+> last 7, 28 or 90 days (clicks, impressions, CTR, average position, top
+> queries and top pages), so the site owner can see how the site does in
+> Google Search without leaving WordPress.
 >
 > **API methods (Search Console API v1):** `sites.list` (show the properties
 > the user can access so they can pick the one for this WordPress site, and
 > show their permission level), `sites.add` (add this WordPress site as a
 > property once ownership is verified), `sitemaps.submit` (submit the site's
 > WordPress sitemap), `sitemaps.list` (read the submitted sitemap's
-> processing status in a once-daily status refresh).
-> **[confirm in backend: exact method set, e.g. `sitemaps.list` vs `sitemaps.get`]**
+> processing status in a once-daily status refresh), and
+> `searchanalytics.query` (read the selected property's clicks, impressions,
+> CTR and position, by date, query and page, for the performance charts).
+> **[confirm in backend: exact method set, e.g. `sitemaps.list` vs `sitemaps.get`,
+> once the `/api/wp/insights/gsc` route lands]**
 >
 > **Why a narrower scope does not work:** `webmasters.readonly` only allows
 > reading. The two core actions of this feature are writes: `sites.add`
@@ -95,21 +114,24 @@ wording in sync with the demo video.
 > `https://www.googleapis.com/auth/webmasters`. With the read-only scope the
 > feature would only be able to list properties, so the user would still have
 > to add the property and submit the sitemap by hand in Search Console, which is
-> exactly what this feature removes. Adbot does not call the Search Analytics,
-> URL Inspection or sitemap-delete endpoints.
+> exactly what this feature removes. Adbot does not call the URL Inspection or
+> sitemap-delete endpoints.
 >
 > **Data accessed:** the list of Search Console property URLs the user can
 > access and their permission level, and the submitted sitemap's metadata
 > (path, last submitted, last downloaded, pending flag, warning and error
-> counts). No search performance data (queries, clicks, impressions) is
-> requested or read.
+> counts), and aggregated search performance for the selected property only
+> (daily clicks, impressions, CTR and average position, plus the top queries and
+> pages), read when the site owner opens the Search Console page or Overview.
 >
 > **Storage and retention:** Adbot stores the selected property URL, its
 > permission level, the verification timestamp, the sitemap URL and the
 > submission timestamp. These are kept against the user's connected site on the
 > Adbot backend and in the user's own WordPress database, which also holds a
 > once-daily snapshot of the sitemap status. The full property list is cached in
-> WordPress for up to 5 minutes so the picker loads quickly. Disconnect deletes
+> WordPress for up to 5 minutes so the picker loads quickly. Search performance
+> data is not stored: it is cached for up to 15 minutes in WordPress and briefly
+> on the backend to respect Google's quotas, then discarded. Disconnect deletes
 > the WordPress copies and the backend tokens; uninstalling the plugin deletes
 > the WordPress copies. **[confirm in backend: that `WpSite.config.gsc` is
 > cleared on `/auth/disconnect`, what happens to it after uninstall (the plugin
@@ -174,12 +196,14 @@ wording in sync with the demo video.
 
 ### `auth/content`
 
-> **Feature:** "Google Merchant Center" card on the Adbot plugin's Channels
+> **Feature:** "Google Merchant Center" setup card on the Adbot plugin's Merchant Center page
 > screen (WooCommerce stores only). The merchant clicks "Grant Merchant Center
 > access", picks their Merchant Center account, clicks "Claim website", then
 > "Register product feed", and optionally "Fetch now". Adbot then shows the
 > claim date, the feed URL, the registration date and the target country and
-> language.
+> language. Below the setup card, the same page charts how the catalogue is
+> doing in Google: product counts by status (approved, limited, disapproved)
+> and, where the Merchant API provides it, performance over time.
 >
 > **API methods (Merchant API v1: `accounts_v1`, `datasources_v1`):**
 > `accounts.list` (show the Merchant Center accounts, including sub-accounts of
@@ -191,8 +215,10 @@ wording in sync with the demo video.
 > named "Adbot — <host>" whose `fileInput.fetchSettings` points at the
 > merchant's own feed URL, fetched daily), `dataSources.get` (show the data
 > source's status in the daily status refresh), and `dataSources.fetch` (the
-> "Fetch now" button).
-> **[confirm in backend: exact method set]**. The Content API for Shopping v2.1
+> "Fetch now" button), plus read-only product-status and performance reports
+> for the performance charts. **[confirm in backend: exact method set, including
+> which Merchant API sub-API (`reports_v1` and/or `products_v1` statuses) the
+> `/api/wp/insights/gmc` route calls]**. The Content API for Shopping v2.1
 > is not used.
 >
 > **Why a narrower scope does not work:** `https://www.googleapis.com/auth/content`
@@ -203,7 +229,9 @@ wording in sync with the demo video.
 >
 > **Data accessed:** Merchant Center account ids and display names, a
 > test-account flag, the homepage claim status, and Adbot's own data source.
-> Adbot does **not** read, insert or modify product records through the API.
+> For the charts, Adbot reads aggregated product status counts and, where
+> available, performance reports for the selected account. Adbot does **not**
+> insert or modify product records through the API.
 > Products reach Merchant Center only because Google fetches the merchant's
 > feed directly from the merchant's own WordPress site, so product data never
 > passes through Adbot's servers.
@@ -253,12 +281,12 @@ without cutting away from any OAuth screen.
 
 - A public HTTPS WordPress site (Google has to fetch it; `localhost` will not
   work). `Store::feed_readiness()` blocks feed registration over plain HTTP.
-- Adbot 1.0.14 installed. Google already connected on the **Connect** screen for
+- Adbot 1.0.14 installed. Google already connected under **Settings → Connections** for
   GTM/GA4 (the previously verified grant), with neither channel bundle granted
   yet. Use a fresh test Google account, or revoke the app at
   myaccount.google.com/permissions and reconnect for GTM/GA4 only. The
-  Channels tab is locked (`LOCKED_PATHS` in `src/components/Layout.js`) until
-  Google is connected.
+  service pages are locked (`isOpenPath()` in `src/components/Layout.js`) until
+  Google is connected; only Overview and Settings stay open.
 - The demo site must **not already be verified** for the test Google account
   in Search Console. "Verify this site" only appears while `thisSiteVerified` is
   false, so shots 8–9 cannot be recorded otherwise. Remove any earlier
@@ -283,17 +311,17 @@ without cutting away from any OAuth screen.
 |---|---|---|---|
 | 1 | Google Cloud console → Google Auth Platform → **Clients** | Open the production web OAuth client. Say: "This is the Adbot Tracking Platform OAuth client." | The client ID (keep the secret hidden), and the Authorized redirect URI(s) `…/api/wp/oauth/google/return` |
 | 2 | Google Auth Platform → **Branding** and **Data Access** | Show the app name, logo, homepage, privacy policy and terms links, and the three new scopes listed alongside the existing ones. | App name matches the consent screen; scopes match this submission |
-| 3 | WordPress admin → **Adbot → Connect** | Show that Google is already connected (the existing verified grant, for GTM/GA4). | Connected account email |
-| 4 | **Adbot → Channels** | Explain that each channel asks for its own permission. Both cards show **Access needed**. | Search Console card and Merchant Center card |
+| 3 | WordPress admin → **Adbot → Settings → Connections** | Show that Google is already connected (the existing verified grant, for GTM/GA4). | Connected account email |
+| 4 | **Adbot → Search Console** (then later **Adbot → Merchant Center**) | Explain that each service asks for its own permission. The page shows **Ready to connect**. | Search Console card and Merchant Center card |
 | 5 | Search Console card → **Grant Search Console access** | The popup opens. Pause on the Google account chooser if it appears. | |
 | 6 | Consent popup (GSC) | **Pause 3–5 s.** Point to the address bar, then the app name, then the list of requested permissions. | `client_id=<your client id>` in the URL, app name "Adbot Tracking Platform" (or the exact verified brand name), the new webmasters and siteverification permissions must be readable (how Google lists previously granted scopes on an incremental grant varies). Tick any unticked boxes on camera. |
-| 7 | Back on Channels | The card refreshes on window focus and now shows **Verify this site** and the property picker. | State badge changes |
+| 7 | Back on the Search Console page | The card refreshes on window focus and now shows **Verify this site** and the property picker. | State badge changes |
 | 8 | Search Console card → **Verify this site** | Say: "Adbot gets a verification token from the Site Verification API and adds Google's verification meta tag to this site." Show the success notice "Ownership confirmed and the property was added." | Notice text |
 | 9 | New tab: site homepage → View Source | Search for `google-site-verification`. | The meta tag in `<head>` (`Site_Verification::inject_meta`) |
 | 10 | Back to the card → **property picker** | Pick the site's property. Say: "This list comes from the Search Console API (`sites.list`)." | The property URL and permission level |
 | 11 | Search Console card → **Submit sitemap** | Show "Submitted https://…/wp-sitemap.xml to Search Console." and the *Last submitted* time. | Sitemap URL, timestamp |
 | 12 | search.google.com/search-console → that property → **Sitemaps** | Prove the write happened in Google: the property exists and the sitemap is listed. Optionally show **Settings → Ownership verification**, which lists the meta-tag method. | Property + sitemap in Search Console |
-| 13 | Merchant Center card → **Grant Merchant Center access** | Popup. | |
+| 13 | **Adbot → Merchant Center** → **Grant Merchant Center access** | Popup. | |
 | 14 | Consent popup (GMC) | **Pause 3–5 s**, as in shot 6. | `client_id=…`, app name, the "Manage your product listings and accounts for Google Shopping" permission (and siteverification) |
 | 15 | Merchant Center card → **account picker** | Pick the account. Say: "Listed with the Merchant API `accounts.list`." | Account name/id |
 | 16 | **Claim website** | Say: "This uses the ownership we verified in step 8 to claim the store website for this Merchant Center account." Show "Website claimed for this Merchant Center account." | *Website claimed* date |
@@ -301,7 +329,7 @@ without cutting away from any OAuth screen.
 | 18 | **Register product feed** | Show "Product feed registered. Google will fetch it daily." and the Target (for example `ZA · en`). | Registered date |
 | 19 | **Fetch now** | Show "Asked Google to fetch the feed now." | Notice |
 | 20 | merchants.google.com → Settings → **Data sources** (and Business info → Website) | Show the "Adbot — <host>" data source with the feed URL and daily schedule, and the website shown as claimed. After a short wait, show products arriving. | Data source + claimed website |
-| 21 | **Adbot → Connect → Disconnect** → confirm | Say: "Disconnect revokes Adbot's Google tokens and removes the channel selections and the verification tag from this site." Note that **Disconnect is on the Connect tab**, not Channels, and it revokes the whole grant (GTM/GA4 too). | Confirmation dialog, disconnected state |
+| 21 | **Adbot → Settings → Connections → Disconnect** → confirm | Say: "Disconnect revokes Adbot's Google tokens and removes the channel selections and the verification tag from this site." Note that **Disconnect is under Settings → Connections**, not on the service pages, and it revokes the whole grant (GTM/GA4 too). | Confirmation dialog, disconnected state |
 | 22 | myaccount.google.com/permissions | Show Adbot is no longer listed (proof of revocation). **[confirm in backend: `/auth/disconnect` calls Google's token revocation endpoint]** | App absent |
 | 23 | (optional) Site homepage → View Source | `google-site-verification` is gone. | Tag removed |
 

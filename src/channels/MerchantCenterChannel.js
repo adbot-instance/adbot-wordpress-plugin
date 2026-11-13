@@ -18,7 +18,9 @@ import { openOAuthPopup, hasScopeSet } from '../lib/oauthPopup';
 // itself — it is the thing merchants ask about.
 //
 // Props: status (a /status response) and onStatusChange (re-read it).
-export default function MerchantCenterChannel( { status, onStatusChange } ) {
+// `embedded`: rendered inside its product page, whose header already shows
+// the logo, name and status, so the card is just the setup steps.
+export default function MerchantCenterChannel( { status, onStatusChange, embedded = false } ) {
 	const granted = hasScopeSet( status, 'gmc' );
 	const wooActive = Boolean( status?.wooActive );
 
@@ -102,7 +104,8 @@ export default function MerchantCenterChannel( { status, onStatusChange } ) {
 		state = 'neutral';
 		stateLabel = __( 'WooCommerce required', 'adbot' );
 	} else if ( ! granted ) {
-		stateLabel = __( 'Access needed', 'adbot' );
+		state = 'accent';
+		stateLabel = __( 'Ready to connect', 'adbot' );
 	} else if ( registeredAt ) {
 		state = 'success';
 		stateLabel = __( 'Feed registered', 'adbot' );
@@ -203,10 +206,10 @@ export default function MerchantCenterChannel( { status, onStatusChange } ) {
 
 	return (
 		<ChannelCard
-			title={ __( 'Google Merchant Center', 'adbot' ) }
-			logoUrl={ logoUrl }
+			title={ embedded ? __( 'Setup', 'adbot' ) : __( 'Google Merchant Center', 'adbot' ) }
+			logoUrl={ embedded ? '' : logoUrl }
 			state={ state }
-			stateLabel={ stateLabel }
+			stateLabel={ embedded ? '' : stateLabel }
 			description={ __(
 				'Publish your WooCommerce products to Google Shopping. Adbot hosts the product feed on your site and Google fetches it daily — your product data never passes through Adbot.',
 				'adbot'

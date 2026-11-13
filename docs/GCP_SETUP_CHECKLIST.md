@@ -62,7 +62,7 @@ matters: later items depend on earlier ones.
       connect → pick site → verify → sitemap, and connect → pick merchant →
       claim → feed → fetch.
       **Who:** the plugin developer, using a non-admin test Google account.
-      **Where:** the plugin's *Channels* page on a staging WordPress site that
+      **Where:** the plugin's *Search Console* and *Merchant Center* pages on a staging WordPress site that
       points at the production backend.
       **Confirm:** the sitemap appears in Search Console, and the
       `Adbot — <host>` data source shows fetched products in Merchant

@@ -16,7 +16,9 @@ import { openOAuthPopup, hasScopeSet } from '../lib/oauthPopup';
 // wants tag tracking never sees a Search Console consent screen.
 //
 // Props: status (a /status response) and onStatusChange (re-read it).
-export default function SearchConsoleChannel( { status, onStatusChange } ) {
+// `embedded`: rendered inside its product page, whose header already shows
+// the logo, name and status, so the card is just the setup steps.
+export default function SearchConsoleChannel( { status, onStatusChange, embedded = false } ) {
 	const granted = hasScopeSet( status, 'gsc' );
 
 	const [ data, setData ] = useState( null );
@@ -165,8 +167,8 @@ export default function SearchConsoleChannel( { status, onStatusChange } ) {
 	let state = 'neutral';
 	let stateLabel = __( 'Not connected', 'adbot' );
 	if ( ! granted ) {
-		state = 'neutral';
-		stateLabel = __( 'Access needed', 'adbot' );
+		state = 'accent';
+		stateLabel = __( 'Ready to connect', 'adbot' );
 	} else if ( submittedAt ) {
 		state = 'success';
 		stateLabel = __( 'Sitemap submitted', 'adbot' );
@@ -244,10 +246,10 @@ export default function SearchConsoleChannel( { status, onStatusChange } ) {
 
 	return (
 		<ChannelCard
-			title={ __( 'Google Search Console', 'adbot' ) }
-			logoUrl={ logoUrl }
+			title={ embedded ? __( 'Setup', 'adbot' ) : __( 'Google Search Console', 'adbot' ) }
+			logoUrl={ embedded ? '' : logoUrl }
 			state={ state }
-			stateLabel={ stateLabel }
+			stateLabel={ embedded ? '' : stateLabel }
 			description={ __(
 				'Prove you own this site and keep your sitemap submitted, so Google can find and index your pages.',
 				'adbot'

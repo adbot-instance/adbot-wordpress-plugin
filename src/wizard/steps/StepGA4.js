@@ -75,7 +75,7 @@ export default function StepGA4() {
 		try {
 			// Persist the chosen Measurement ID server-side; StepAudit reads it back
 			// from /status and uses it for the setup plan (overriding URL discovery).
-			await selectGA4Property( property.measurementId );
+			await selectGA4Property( property );
 			await advance( 'audit' );
 		} catch ( err ) {
 			setError( err.message || 'Failed to select GA4 property' );

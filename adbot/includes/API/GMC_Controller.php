@@ -145,6 +145,7 @@ class GMC_Controller extends REST_Controller {
 
 		$account = is_array( $result['account'] ?? null ) ? $result['account'] : [];
 		update_option( self::OPTION_ACCOUNT_NAME, $account_name, false );
+		Insights_Controller::flush( 'gmc' );
 		update_option( self::OPTION_ACCOUNT_LABEL, (string) ( $account['accountName'] ?? '' ), false );
 
 		return new WP_REST_Response( [

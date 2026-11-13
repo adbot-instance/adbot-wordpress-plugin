@@ -5,7 +5,7 @@ import { initiateOAuth } from '../api/auth';
  * redirect when the browser blocks it.
  *
  * Extracted because the same open-or-redirect dance lived in four places
- * (StepConnect, StepGA4, pages/Connect, pages/Dashboard) and each channel card
+ * (StepConnect, StepGA4, pages/Connections, pages/Overview) and each channel card
  * needs a scoped variant of it. The popup posts `adbot:oauth-result` back to
  * the opener from finishOAuthPopupReturn() in src/index.js; callers listen for
  * that, or just poll status on focus.

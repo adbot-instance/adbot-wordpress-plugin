@@ -37,6 +37,14 @@ class Client {
 	public const DEFAULT_TIMEOUT = 20;
 	public const SLOW_TIMEOUT    = 45;
 
+	/**
+	 * Full GTM account/container enumeration. The Tag Manager API's default
+	 * quota is 0.25 QPS per project, so the backend throttles it and an admin
+	 * with ~20 accounts takes about a minute. Until the picker loads accounts
+	 * first, give this one call room to finish.
+	 */
+	public const LIST_TIMEOUT    = 120;
+
 	public function get( string $path, array $query = [], int $timeout = self::DEFAULT_TIMEOUT ): array {
 		return $this->request( 'GET', $path, $query, null, true, $timeout );
 	}

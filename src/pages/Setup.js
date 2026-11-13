@@ -71,10 +71,10 @@ export default function Setup() {
 	if ( ! auditData ) {
 		return (
 			<div className="adbot-setup">
-				<h2>Fix Issues</h2>
+				<h3 className="adbot-section-title">Fix issues</h3>
 				<p>Run an audit first to identify issues that can be fixed automatically.</p>
-				<button className="button button-primary" onClick={ () => { window.location.hash = '#/audit'; } }>
-					Go to Audit
+				<button className="button button-primary" onClick={ () => { window.location.hash = '#/tag-manager/audit'; } }>
+					Go to audit
 				</button>
 			</div>
 		);
@@ -82,7 +82,7 @@ export default function Setup() {
 
 	return (
 		<div className="adbot-setup">
-			<h2>Fix Issues</h2>
+			<h3 className="adbot-section-title">Fix issues</h3>
 			<p>
 				Container: <strong>{ auditData.containerId }</strong>
 				{ auditData.measurementId && <> | GA4: <strong>{ auditData.measurementId }</strong></> }
@@ -92,7 +92,7 @@ export default function Setup() {
 
 			{ step === 'plan' && (
 				<div className="adbot-setup__step">
-					<h3>Step 1: Generate Fix Plan</h3>
+					<h3>Step 1: Generate fix plan</h3>
 					<p>We found { auditData.gaps?.length || 0 } issues. Generate a plan to fix them.</p>
 					<ul>
 						{ auditData.gaps?.map( ( gap ) => (
@@ -113,7 +113,7 @@ export default function Setup() {
 
 			{ step === 'execute' && plan && (
 				<div className="adbot-setup__step">
-					<h3>Step 2: Review & Execute</h3>
+					<h3>Step 2: Review and run</h3>
 					<p>The following changes will be made to your GTM container:</p>
 					<ul>
 						{ plan.map( ( op ) => (
@@ -159,7 +159,7 @@ export default function Setup() {
 					<p className="adbot-success">
 						Changes have been published to your live GTM container.
 					</p>
-					<button className="button" onClick={ () => { window.location.hash = '#/audit'; } }>
+					<button className="button" onClick={ () => { window.location.hash = '#/tag-manager/audit'; } }>
 						Re-run Audit to Verify
 					</button>
 				</div>

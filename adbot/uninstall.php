@@ -29,6 +29,8 @@ function adbot_uninstall_single_site(): void {
 	// Written by the GA4 / snippet-detection features but never cleaned up
 	// before this — an uninstall left them behind in wp_options.
 	delete_option( 'adbot_ga4_measurement_id' );
+	delete_option( 'adbot_ga4_property_id' );
+	delete_option( 'adbot_ga4_property_name' );
 	delete_option( 'adbot_snippet_external_detected' );
 	delete_option( 'adbot_snippet_detection' );
 	delete_option( 'adbot_google_connected_last' );
@@ -66,6 +68,8 @@ function adbot_uninstall_single_site(): void {
 		// Channel caches.
 		'adbot_gsc_',
 		'adbot_gmc_',
+		// Product page chart data.
+		'adbot_insights_',
 	];
 
 	foreach ( $adbot_transient_prefixes as $prefix ) {

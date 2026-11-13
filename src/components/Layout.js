@@ -3,22 +3,81 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { __ } from '@wordpress/i18n';
 import { useGoogleConnection } from '../hooks/useGoogleConnection';
 
+function logo( key ) {
+	return window.adbotAdmin?.images?.[ key ] || '';
+}
+
+// Overview, then one item per Google service, then Settings — the same order
+// as the Shopify app's rail. Business Profile has no bundled logo yet.
 function getNavItems() {
 	return [
-		{ path: '/', label: __( 'Dashboard', 'adbot' ), icon: 'dashicons-dashboard' },
-		{ path: '/connect', label: __( 'Connect', 'adbot' ), icon: 'dashicons-admin-links' },
-		{ path: '/channels', label: __( 'Channels', 'adbot' ), icon: 'dashicons-share' },
-		{ path: '/audit', label: __( 'Audit', 'adbot' ), icon: 'dashicons-search' },
-		{ path: '/setup', label: __( 'Fix Issues', 'adbot' ), icon: 'dashicons-admin-tools' },
-		{ path: '/settings', label: __( 'Settings', 'adbot' ), icon: 'dashicons-admin-generic' },
+		{
+			path: '/',
+			label: __( 'Overview', 'adbot' ),
+			icon: 'dashicons-dashboard',
+		},
+		{
+			path: '/analytics',
+			label: __( 'Analytics', 'adbot' ),
+			logo: logo( 'ga4' ),
+		},
+		{
+			path: '/tag-manager',
+			label: __( 'Tag Manager', 'adbot' ),
+			logo: logo( 'gtm' ),
+		},
+		{
+			path: '/search-console',
+			label: __( 'Search Console', 'adbot' ),
+			logo: logo( 'gsc' ),
+		},
+		{
+			path: '/merchant-center',
+			label: __( 'Merchant Center', 'adbot' ),
+			logo: logo( 'gmc' ),
+		},
+		{
+			path: '/business-profile',
+			label: __( 'Business Profile', 'adbot' ),
+			icon: 'dashicons-store',
+		},
+		{
+			path: '/settings',
+			label: __( 'Settings', 'adbot' ),
+			icon: 'dashicons-admin-generic',
+			separated: true,
+		},
 	];
 }
 
-const LOCKED_PATHS = [ '/connect', '/channels', '/audit', '/setup', '/settings' ];
+// Without a Google connection only Overview and Settings (where you connect)
+// are open. A prefix check so nested tabs and legacy paths are covered too.
+function isOpenPath( path ) {
+	return (
+		path === '/' ||
+		path === '' ||
+		path === '/settings' ||
+		path.startsWith( '/settings/' )
+	);
+}
+
+function NavIcon( { item } ) {
+	return item.logo ? (
+		<img
+			className="adbot-nav-item__logo"
+			src={ item.logo }
+			alt=""
+			width={ 18 }
+			height={ 18 }
+		/>
+	) : (
+		<span className={ `dashicons ${ item.icon }` } aria-hidden="true" />
+	);
+}
 
 function getBrand() {
 	if ( typeof window === 'undefined' || ! window.adbotAdmin?.brand ) {
-		return { name: __( 'Tracking', 'adbot' ), logoUrl: '', tagline: '' };
+		return { name: __( 'Adbot', 'adbot' ), logoUrl: '', tagline: '' };
 	}
 	return window.adbotAdmin.brand;
 }
@@ -36,7 +95,7 @@ export default function Layout() {
 			return;
 		}
 		const path = location.pathname;
-		if ( LOCKED_PATHS.includes( path ) ) {
+		if ( ! isOpenPath( path ) ) {
 			navigate( '/', { replace: true } );
 		}
 	}, [ loading, connected, location.pathname, navigate ] );
@@ -57,40 +116,55 @@ export default function Layout() {
 					<div className="adbot-admin__identity-text">
 						<h1 className="adbot-admin__title">{ brand.name }</h1>
 						{ brand.tagline ? (
-							<p className="adbot-admin__tagline">{ brand.tagline }</p>
+							<p className="adbot-admin__tagline">
+								{ brand.tagline }
+							</p>
 						) : null }
 					</div>
 				</div>
 			</div>
 			<div className="adbot-admin__body">
-				<nav className="adbot-admin__sidebar" aria-label={ __( 'Adbot plugin sections', 'adbot' ) }>
+				<nav
+					className="adbot-admin__sidebar"
+					aria-label={ __( 'Adbot plugin sections', 'adbot' ) }
+				>
 					<ul>
 						{ navItems.map( ( item ) => {
-							const isDashboard = item.path === '/';
-							const isLocked = ! isDashboard && navLocked;
+							const isLocked =
+								navLocked && ! isOpenPath( item.path );
 							return (
-								<li key={ item.path }>
+								<li
+									key={ item.path }
+									className={
+										item.separated
+											? 'adbot-admin__nav-sep'
+											: undefined
+									}
+								>
 									{ isLocked ? (
 										<span
 											className="adbot-nav-item adbot-nav-item--disabled"
 											aria-disabled="true"
 											title={ __(
-												'Connect your Google account from the Dashboard first.',
+												'Connect your Google account first (Overview or Settings).',
 												'adbot'
 											) }
 										>
-											<span className={ `dashicons ${ item.icon }` } />
+											<NavIcon item={ item } />
 											{ item.label }
 										</span>
 									) : (
 										<NavLink
 											to={ item.path }
 											className={ ( { isActive } ) =>
-												'adbot-nav-item' + ( isActive ? ' adbot-nav-item--active' : '' )
+												'adbot-nav-item' +
+												( isActive
+													? ' adbot-nav-item--active'
+													: '' )
 											}
 											end={ item.path === '/' }
 										>
-											<span className={ `dashicons ${ item.icon }` } />
+											<NavIcon item={ item } />
 											{ item.label }
 										</NavLink>
 									) }

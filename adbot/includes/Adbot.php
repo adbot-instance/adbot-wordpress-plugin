@@ -17,6 +17,7 @@ use Adbot\API\Audit_Controller;
 use Adbot\API\Setup_Controller;
 use Adbot\API\Snippet_Controller;
 use Adbot\API\Settings_Controller;
+use Adbot\API\Insights_Controller;
 use Adbot\API\Onboarding_Controller;
 use Adbot\API\Payments_Controller;
 use Adbot\Tracking\Snippet_Injector;
@@ -177,6 +178,7 @@ class Adbot {
 			( new Settings_Controller() )->register_routes();
 			( new Onboarding_Controller() )->register_routes();
 			( new Payments_Controller() )->register_routes();
+			( new Insights_Controller() )->register_routes();
 
 			register_rest_route( 'adbot/v1', '/verify', [
 				'methods'             => 'GET',

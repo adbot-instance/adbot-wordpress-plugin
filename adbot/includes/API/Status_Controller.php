@@ -56,7 +56,11 @@ class Status_Controller extends REST_Controller {
 			'snippetContainerPath'    => $snippet_container_path,
 			'snippetExternalDetected' => $snippet_external,
 			'snippetDetection'        => $snippet_detection,
+			'snippetHead'             => '' !== (string) $snippet_container_id ? \Adbot\Tracking\Snippet_Injector::head_snippet( (string) $snippet_container_id ) : '',
+			'snippetBody'             => '' !== (string) $snippet_container_id ? \Adbot\Tracking\Snippet_Injector::body_snippet( (string) $snippet_container_id ) : '',
 			'ga4MeasurementId'        => (string) get_option( 'adbot_ga4_measurement_id', '' ),
+			'ga4PropertyId'           => (string) get_option( Insights_Controller::OPTION_GA4_PROPERTY_ID, '' ),
+			'ga4PropertyName'         => (string) get_option( Insights_Controller::OPTION_GA4_PROPERTY_NAME, '' ),
 			'googleScopeSets'         => array_values( $scope_sets ),
 
 			// Search Console channel.

@@ -2,22 +2,24 @@ import { useEffect, useState } from '@wordpress/element';
 import { useOnboarding } from '../OnboardingProvider';
 import { summarizeForGate, tagTypeLabel } from '../gateAudit';
 import ScoreGauge from '../../components/ScoreGauge';
+import StatusBadge, { SEVERITY_TONE, toneFor } from '../../components/StatusBadge';
 
 // Display vocabulary for the report — matches the severities the audit emits
-// (critical / warning / info) after normalizeSeverity().
-const SEVERITY_META = {
-	critical: [ 'Critical', '#d63638' ],
-	warning: [ 'Needs attention', '#dba617' ],
-	info: [ 'Suggested', '#2271b1' ],
+// (critical / warning / info) after normalizeSeverity(). Colours come from the
+// shared status tones (SEVERITY_TONE), not a local colour map.
+const SEVERITY_LABELS = {
+	critical: 'Critical',
+	warning: 'Needs attention',
+	info: 'Suggested',
 };
 const SEVERITY_ORDER = [ 'critical', 'warning', 'info' ];
 
 function SeverityBadge( { severity } ) {
-	const [ label, color ] = SEVERITY_META[ severity ] || SEVERITY_META.info;
+	const key = SEVERITY_LABELS[ severity ] ? severity : 'info';
 	return (
-		<span className="adbot-sev-badge" style={ { color, borderColor: color } }>
-			{ label }
-		</span>
+		<StatusBadge tone={ toneFor( SEVERITY_TONE, key ) }>
+			{ SEVERITY_LABELS[ key ] }
+		</StatusBadge>
 	);
 }
 
@@ -226,12 +228,12 @@ export default function StepReport() {
 
 				<div className="adbot-report__grid">
 					{ SEVERITY_ORDER.map( ( key ) => {
-						const [ label, color ] = SEVERITY_META[ key ];
+						const label = SEVERITY_LABELS[ key ];
+						const tone = toneFor( SEVERITY_TONE, key );
 						return (
 							<div
-								className="adbot-report__tile"
+								className={ `adbot-report__tile adbot-report__tile--${ tone }` }
 								key={ key }
-								style={ { borderTopColor: color } }
 							>
 								<div className="adbot-report__tile-count">
 									{ summary.bySeverity[ key ] || 0 }

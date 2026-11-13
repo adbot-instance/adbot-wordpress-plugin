@@ -151,6 +151,9 @@ class Auth_Controller extends REST_Controller {
 		delete_option( GMC_Controller::OPTION_REGISTERED_AT );
 		delete_transient( 'adbot_gsc_sites' );
 		delete_transient( 'adbot_gmc_accounts' );
+		delete_option( Insights_Controller::OPTION_GA4_PROPERTY_ID );
+		delete_option( Insights_Controller::OPTION_GA4_PROPERTY_NAME );
+		Insights_Controller::flush();
 		Site_Verification::clear();
 		Sync::clear();
 

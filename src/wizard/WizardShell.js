@@ -150,7 +150,7 @@ export default function WizardShell() {
 						className="adbot-wizard__skip"
 						onClick={ skip }
 					>
-						{ __( 'Skip to dashboard', 'adbot' ) }
+						{ __( 'Skip to overview', 'adbot' ) }
 					</button>
 				</aside>
 

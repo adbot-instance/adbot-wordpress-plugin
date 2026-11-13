@@ -333,6 +333,32 @@ user sees items land rather than being told to come back tomorrow. Response 200:
 > transit Adbot — a deliberately smaller data flow than a per-product push, and
 > the reason the hosted-fetch design was chosen.
 
+## Insights (product page charts)
+
+### `GET /insights/{product}`
+
+`product` is `ga4`, `gsc`, `gmc` or `gbp`. Query: `range` = `7d` | `28d` | `90d`
+(default `28d`); for `ga4` also `property_id` (numeric GA4 property id, which the
+plugin stores locally in `adbot_ga4_property_id` when the user picks a property).
+Search Console and Merchant Center use the backend's stored selections.
+
+Returns the same `ProductInsights` payload as the Shopify app
+(`lib/insights/types.ts`): `product`, `source` (`"live"` or `"none"` — never
+sample data), `connected`, `comingSoon`, `accountLabel`, `range`, `compare`,
+`compareLabel`, `currency`, `scorecards[]`, `charts[]` (time series),
+`breakdowns[]` and `emptyReason`.
+
+Expected conditions are 200 with `source: "none"` and a plain `emptyReason`
+(nothing selected, no data in range, scope not granted). A revoked grant is
+409 `google_not_connected`.
+
+Plugin side (`Insights_Controller`): proxies as
+`GET /wp-json/adbot/v1/insights/{product}?range=`, caches live results for 15
+minutes per product and range (`adbot_insights_*` transients, cleared on a
+selection change, on disconnect and on uninstall), answers `gbp` locally with
+`comingSoon: true`, and turns a backend 404 (older backend) into an empty
+state.
+
 ## Audits
 
 ### `POST /audit/run`

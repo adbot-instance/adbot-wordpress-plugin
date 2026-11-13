@@ -4,8 +4,24 @@ export function getGA4Properties() {
 	return apiGet( 'ga4/properties' ).then( groupProperties );
 }
 
-export function selectGA4Property( measurementId ) {
-	return apiPost( 'ga4/select', { measurementId } );
+/**
+ * Save the GA4 property: the measurement id drives tag setup, the numeric
+ * property id and name drive the Analytics charts.
+ *
+ * @param {string|Object} property A property from getGA4Properties(), or a bare
+ *                                 measurement id (older callers).
+ * @return {Promise<Object>} Saved ids.
+ */
+export function selectGA4Property( property ) {
+	const p =
+		typeof property === 'string'
+			? { measurementId: property }
+			: property || {};
+	return apiPost( 'ga4/select', {
+		measurementId: p.measurementId,
+		propertyId: p.propertyId || '',
+		propertyName: p.name || '',
+	} );
 }
 
 /**
@@ -19,7 +35,9 @@ export function selectGA4Property( measurementId ) {
  * @return {Array} Accounts, each with a nested `properties` array.
  */
 function groupProperties( data ) {
-	const flat = Array.isArray( data ) ? data : ( data && data.properties ) || [];
+	const flat = Array.isArray( data )
+		? data
+		: ( data && data.properties ) || [];
 	if ( ! Array.isArray( flat ) ) {
 		return [];
 	}
@@ -41,7 +59,9 @@ function groupProperties( data ) {
 		byAccount.get( key ).properties.push( {
 			// `path` is the stable key + selection identity (a measurement id is
 			// unique per web stream).
-			path: item.measurementId || `${ item.propertyId }:${ item.streamName }`,
+			path:
+				item.measurementId ||
+				`${ item.propertyId }:${ item.streamName }`,
 			propertyId: item.propertyId || '',
 			name: item.propertyName || '',
 			measurementId: item.measurementId || '',
